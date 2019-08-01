@@ -42,7 +42,7 @@ class Attention(nn.Module):
             hidden_layers,
             dropout=None,
             batchnorm=True,
-            activation='sigmoid'):
+            activation='prelu'):
         super(Attention, self).__init__()
         self.mlp = MLP(
             input_size=input_size * 4,
