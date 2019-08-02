@@ -7,7 +7,7 @@ based CTR models. Models are implemented by **PyTorch**.
 ```
 git clone https://github.com/GitHub-HongweiZhang/prediction-flow.git
 ```
-* install
+* Install.
 ```
 pip install -e .
 ```
@@ -19,7 +19,7 @@ The name parameter is used to index the column raw data from input data frame.
 The column_flow parameter is a single transformer of a list of transformers.
 The transformer is used to pre-process the column data before training the model.
 
-* dense number  feature
+* dense number feature
 ```
 Number('age', StandardScaler())
 Number('ctr', None)
