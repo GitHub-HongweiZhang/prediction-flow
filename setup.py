@@ -12,9 +12,9 @@ with open('requirements.txt') as f:
     INSTALL_REQUIRES = f.read().splitlines()
 
 DISTNAME = 'prediction-flow'
-DESCRIPTION = ''
+DESCRIPTION = 'Deep-Learning based CTR models implemented by PyTorch'
 MAINTAINER = 'Hongwei Zhang'
-MAINTAINER_EMAIL = ''
+MAINTAINER_EMAIL = 'hongwei.zhang.se@gmail.com'
 URL = 'https://github.com/GitHub-HongweiZhang/prediction-flow'
 LICENSE = 'MIT'
 VERSION = prediction_flow.__version__
