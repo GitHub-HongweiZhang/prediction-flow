@@ -8,6 +8,9 @@ import prediction_flow
 with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
 
+with open('requirements.txt') as f:
+    INSTALL_REQUIRES = f.read().splitlines()
+
 DISTNAME = 'prediction-flow'
 DESCRIPTION = ''
 MAINTAINER = 'Hongwei Zhang'
@@ -27,14 +30,7 @@ def setup_package():
         version=VERSION,
         long_description=LONG_DESCRIPTION,
         python_requires='>=3.6',
-        install_requires=[
-            'numpy>=1.16.0',
-            'pandas==0.24.2',
-            'torch>=1.1.0',
-            'tqdm>=4.32.0',
-            'scikit-learn>=0.20.0',
-            'h5py'
-        ],
+        install_requires=INSTALL_REQUIRES,
         classifiers=(
             'Development Status :: 3 - Alpha',
             'License :: OSI Approved :: MIT License',
