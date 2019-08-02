@@ -35,6 +35,7 @@ Sequence('genres', SequenceEncoder(sep='|', min_cnt=1))
 
 ## transformer
 The following transformers are provided now.
+
 | transformer | supported feature type | detail |
 |--|--|--|
 | StandardScaler | Number | Wrapper of scikit-learn's StandardScaler. Null value must be filled in advance. |
@@ -43,6 +44,7 @@ The following transformers are provided now.
 | SequenceEncoder | Sequence | Converting sequence str value to int. Null value must be filled in advance using '\_\_UNKNOWN\_\_'. |
 
 ## model
+
 | model | reference |
 |--|--|
 | DNN | - |
