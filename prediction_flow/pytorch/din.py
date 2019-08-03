@@ -71,8 +71,12 @@ class DIN(nn.Module):
         Size of hidden layers.
         Example: [96, 32]
 
-    activation : str
-        Activation function.
+    att_activation : str
+        Activation function of attention pooling.
+        Example: prelu
+
+    dnn_activation : str
+        Activation function of deep layers.
         Example: relu
 
     final_activation : str
@@ -88,7 +92,8 @@ class DIN(nn.Module):
         return False
 
     def __init__(self, features, attention_groups, num_classes, embedding_size,
-                 hidden_layers, activation='prelu', final_activation=None,
+                 hidden_layers, att_activation='prelu',
+                 dnn_activation='prelu', final_activation=None,
                  dropout=None):
         super(DIN, self).__init__()
         self.features = features
@@ -127,7 +132,8 @@ class DIN(nn.Module):
         for attention_group in self.attention_groups:
             self._attention_poolings[attention_group.name] = Attention(
                 attention_group.pairs_count * embedding_size,
-                hidden_layers=attention_group.hidden_layers)
+                hidden_layers=attention_group.hidden_layers,
+                activation=att_activation)
             self.add_module(
                 f"attention_pooling:{attention_group.name}",
                 self._attention_poolings[attention_group.name])
@@ -137,7 +143,7 @@ class DIN(nn.Module):
         self.mlp = MLP(
             total_input_size,
             hidden_layers,
-            dropout=dropout, batchnorm=True, activation=activation)
+            dropout=dropout, batchnorm=True, activation=dnn_activation)
         final_layer_input_size = hidden_layers[-1]
 
         output_size = self.num_classes
