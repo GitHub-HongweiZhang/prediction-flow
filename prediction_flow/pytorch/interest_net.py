@@ -6,7 +6,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
-from .nn import MLP, Attention, MaxPooling
+from .nn import MLP, MaxPooling
 from .utils import init_weights
 
 
@@ -94,6 +94,10 @@ class InterestNet(nn.Module):
                 return True
         return False
 
+    def create_attention_fn(self, attention_group):
+        raise NotImplementedError(
+            "Please implement the func to create attention")
+
     def __init__(self, features, attention_groups, num_classes, embedding_size,
                  hidden_layers, att_activation='prelu',
                  dnn_activation='prelu', final_activation=None,
@@ -102,7 +106,12 @@ class InterestNet(nn.Module):
         self.features = features
         self.attention_groups = attention_groups
         self.num_classes = num_classes
+        self.embedding_size = embedding_size
+        self.hidden_layers = hidden_layers
+        self.att_activation = att_activation
+        self.dnn_activation = dnn_activation
         self.final_activation = final_activation
+        self.dropout = dropout
 
         self._category_embeddings = OrderedDict()
         self._sequence_embeddings = OrderedDict()
@@ -133,10 +142,8 @@ class InterestNet(nn.Module):
 
         # attention
         for attention_group in self.attention_groups:
-            self._attention_poolings[attention_group.name] = Attention(
-                attention_group.pairs_count * embedding_size,
-                hidden_layers=attention_group.hidden_layers,
-                activation=att_activation)
+            self._attention_poolings[attention_group.name] = (
+                self.create_attention_fn(attention_group))
             self.add_module(
                 f"attention_pooling:{attention_group.name}",
                 self._attention_poolings[attention_group.name])

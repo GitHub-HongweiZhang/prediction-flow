@@ -2,6 +2,7 @@
 Deep Interest Network.
 """
 
+from .nn import Attention
 from .interest_net import InterestNet
 
 
@@ -40,3 +41,9 @@ class DIN(InterestNet):
     """
     def __init__(self, *args, **kwargs):
         super(DIN, self).__init__(*args, **kwargs)
+
+    def create_attention_fn(self, attention_group):
+        return Attention(
+            attention_group.pairs_count * self.embedding_size,
+            hidden_layers=attention_group.hidden_layers,
+            activation=self.att_activation)
