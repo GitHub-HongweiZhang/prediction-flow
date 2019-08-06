@@ -28,8 +28,8 @@ def test_normal():
     attention_groups = [
         AttentionGroup(
             name='group1', hidden_layers=[8, 4],
-            pairs=[('movieId', 'clickedMovieIds'),
-                   ('topGenre', 'clickedMovieTopGenres')])]
+            pairs=[{'ad': 'movieId', 'pos_hist': 'clickedMovieIds'},
+                   {'ad': 'topGenre', 'pos_hist': 'clickedMovieTopGenres'}])]
 
     features = Features(
         number_features=number_features,

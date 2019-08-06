@@ -24,27 +24,30 @@ class AttentionGroup(object):
     hidden_layers : iterable
         Hidden layer sizes of attention.
 
-    pairs : list
+    pairs : dict
         Example :
-            [(item_id, clicked_item_id),
-             (item_category, clicked_item_category)]
+            [{'ad': 'item_id',
+              'pos_hist': 'clicked_item_ids',
+              'neg_hist': 'neg_item_ids'},
+             {'ad': 'item_category',
+              'pos_hist': 'clicked_item_categories',
+              'neg_hist': 'neg_item_categories'}]
     """
     def __init__(self, name, hidden_layers, pairs=None):
         self.name = name
         self.hidden_layers = hidden_layers
-        if pairs:
-            self.pairs = pairs
-        else:
-            self.pairs = list()
+        self.pairs = pairs
 
-    def add(self, candidate_feature_name, behavior_feature_nane):
-        self.pairs.append((candidate_feature_name, behavior_feature_nane))
+        self.related_feature_names = set()
+        for pair in pairs:
+            self.related_feature_names.add(pair['ad'])
+            self.related_feature_names.add(pair['pos_hist'])
+            if 'neg_hist' in pair:
+                self.related_feature_names.add(pair['neg_hist'])
 
     def is_attention_feature(self, feature_name):
-        for candidate, behavior in self.pairs:
-            if feature_name == candidate or feature_name == behavior:
-                return True
-
+        if feature_name in self.related_feature_names:
+            return True
         return False
 
     @property
@@ -176,16 +179,16 @@ class DIN(nn.Module):
 
         for attention_group in self.attention_groups:
             query = torch.cat(
-                [embeddings[candidate]
-                 for candidate, _ in attention_group.pairs],
+                [embeddings[pair['ad']]
+                 for pair in attention_group.pairs],
                 dim=-1)
             keys = torch.cat(
-                [self._sequence_embeddings[behavior](x[behavior])
-                 for _, behavior in attention_group.pairs],
+                [self._sequence_embeddings[pair['pos_hist']](
+                    x[pair['pos_hist']]) for pair in attention_group.pairs],
                 dim=-1)
             keys_length = torch.min(torch.cat(
-                [x[f"__{behavior}_length"].view(-1, 1)
-                 for _, behavior in attention_group.pairs],
+                [x[f"__{pair['pos_hist']}_length"].view(-1, 1)
+                 for pair in attention_group.pairs],
                 dim=-1), dim=-1)[0]
             embeddings[attention_group.name] = self._attention_poolings[
                 attention_group.name](query, keys, keys_length)
