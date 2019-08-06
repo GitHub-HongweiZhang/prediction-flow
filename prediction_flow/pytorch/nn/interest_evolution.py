@@ -13,7 +13,7 @@ Reference:
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from .din_attention import Attention
+from . import Attention
 
 
 class InterestEvolution(nn.Module):
@@ -64,7 +64,6 @@ class InterestEvolution(nn.Module):
             input_size=input_size,
             hidden_size=input_size,
             batch_first=True,
-            dropout=gru_dropout,
             bidirectional=False)
 
         if gru_type == 'GRU':
@@ -72,7 +71,6 @@ class InterestEvolution(nn.Module):
                 input_size=input_size,
                 hidden_size=input_size,
                 batch_first=True,
-                dropout=gru_dropout,
                 bidirectional=False)
 
             self.attention = Attention(

@@ -42,5 +42,7 @@ class DIEN(InterestNet):
         return InterestEvolution(
             attention_group.pairs_count * self.embedding_size,
             gru_type=attention_group.gru_type,
+            gru_dropout=attention_group.gru_dropout,
             att_hidden_layers=attention_group.hidden_layers,
+            att_dropout=attention_group.att_dropout,
             att_activation=attention_group.activation)

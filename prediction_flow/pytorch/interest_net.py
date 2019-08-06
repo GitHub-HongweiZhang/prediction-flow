@@ -40,13 +40,16 @@ class AttentionGroup(object):
     gru_type : str
         Type of GRU. GRU, AIGRU, AGRU and AUGRU are supported.
     """
-    def __init__(self, name, pairs, hidden_layers, activation='prelu',
-                 gru_type='GRU'):
+    def __init__(self, name, pairs,
+                 hidden_layers, activation='prelu', att_dropout=0.0,
+                 gru_type='GRU', gru_dropout=0.0):
         self.name = name
+        self.pairs = pairs
         self.hidden_layers = hidden_layers
         self.activation = activation
+        self.att_dropout = att_dropout
         self.gru_type = gru_type
-        self.pairs = pairs
+        self.gru_dropout = gru_dropout
 
         self.related_feature_names = set()
         for pair in pairs:

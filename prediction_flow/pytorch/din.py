@@ -42,4 +42,5 @@ class DIN(InterestNet):
         return Attention(
             attention_group.pairs_count * self.embedding_size,
             hidden_layers=attention_group.hidden_layers,
+            dropout=attention_group.att_dropout,
             activation=attention_group.activation)
