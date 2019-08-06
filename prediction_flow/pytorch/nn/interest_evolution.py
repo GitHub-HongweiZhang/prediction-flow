@@ -27,11 +27,17 @@ class InterestEvolution(nn.Module):
     gru_type : str
         Type of GRU. GRU, AIGRU, AGRU and AUGRU are supported.
 
+    gru_dropout : float
+        Dropout rate of GRU.
+
     att_hidden_layers : iterable
         Hidden layer sizes of attention.
 
     att_dropout : float
         Dropout rate of attention.
+
+    att_batchnorm : bool
+        Batchnorm of attention.
 
     att_activation : str
         Activation function name of attention.

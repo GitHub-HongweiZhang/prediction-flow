@@ -21,9 +21,6 @@ class AttentionGroup(object):
     name : str
         Unique group name.
 
-    hidden_layers : iterable
-        Hidden layer sizes of attention.
-
     pairs : dict
         Example :
             [{'ad': 'item_id',
@@ -32,10 +29,23 @@ class AttentionGroup(object):
              {'ad': 'item_category',
               'pos_hist': 'clicked_item_categories',
               'neg_hist': 'neg_item_categories'}]
+
+    hidden_layers : iterable
+        Hidden layer sizes of attention.
+
+    activation : str
+        Activation function of attention.
+        Example: prelu
+
+    gru_type : str
+        Type of GRU. GRU, AIGRU, AGRU and AUGRU are supported.
     """
-    def __init__(self, name, hidden_layers, pairs=None):
+    def __init__(self, name, pairs, hidden_layers, activation='prelu',
+                 gru_type='GRU'):
         self.name = name
         self.hidden_layers = hidden_layers
+        self.activation = activation
+        self.gru_type = gru_type
         self.pairs = pairs
 
         self.related_feature_names = set()
@@ -74,10 +84,6 @@ class InterestNet(nn.Module):
         Size of hidden layers.
         Example: [96, 32]
 
-    att_activation : str
-        Activation function of attention pooling.
-        Example: prelu
-
     dnn_activation : str
         Activation function of deep layers.
         Example: relu
@@ -99,16 +105,14 @@ class InterestNet(nn.Module):
             "Please implement the func to create attention")
 
     def __init__(self, features, attention_groups, num_classes, embedding_size,
-                 hidden_layers, att_activation='prelu',
-                 dnn_activation='prelu', final_activation=None,
-                 dropout=None):
+                 hidden_layers, dnn_activation='prelu', final_activation=None,
+                 dropout=0.0):
         super(InterestNet, self).__init__()
         self.features = features
         self.attention_groups = attention_groups
         self.num_classes = num_classes
         self.embedding_size = embedding_size
         self.hidden_layers = hidden_layers
-        self.att_activation = att_activation
         self.dnn_activation = dnn_activation
         self.final_activation = final_activation
         self.dropout = dropout

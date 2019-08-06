@@ -7,7 +7,7 @@ import torch.nn.init as init
 
 
 def test_din_attention():
-    attention = Attention(3, [8], batchnorm=False, activation=None)
+    attention = Attention(3, [8], batchnorm=False, activation=0.0)
 
     query = torch.tensor([[1, 1, 1], [0.1, 0.2, 0.3]], dtype=torch.float)
 

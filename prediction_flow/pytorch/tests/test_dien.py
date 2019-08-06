@@ -1,7 +1,7 @@
 from prediction_flow.features import Number, Category, Sequence, Features
 from prediction_flow.transformers.column import (
     StandardScaler, CategoryEncoder, SequenceEncoder)
-from prediction_flow.pytorch import AttentionGroup, DIN
+from prediction_flow.pytorch import AttentionGroup, DIEN
 
 
 from .utils import prepare_dataloader
@@ -39,7 +39,7 @@ def test_normal():
 
     dataloader = prepare_dataloader(features)
 
-    model = DIN(
+    model = DIEN(
         features, attention_groups=attention_groups,
         num_classes=2, embedding_size=4, hidden_layers=(16, 8),
         final_activation='sigmoid', dropout=0.3)

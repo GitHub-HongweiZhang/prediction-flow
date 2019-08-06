@@ -1,13 +1,13 @@
 """
-Deep Interest Network.
+Deep Interest Evolution Network.
 """
 
-from .nn import Attention
+from .nn import InterestEvolution
 from .interest_net import InterestNet
 
 
-class DIN(InterestNet):
-    """Deep Interest Network.
+class DIEN(InterestNet):
+    """Deep Interest Evolution Network.
 
     Parameters
     ----------
@@ -36,10 +36,11 @@ class DIN(InterestNet):
         Dropout rate.
     """
     def __init__(self, *args, **kwargs):
-        super(DIN, self).__init__(*args, **kwargs)
+        super(DIEN, self).__init__(*args, **kwargs)
 
     def create_attention_fn(self, attention_group):
-        return Attention(
+        return InterestEvolution(
             attention_group.pairs_count * self.embedding_size,
-            hidden_layers=attention_group.hidden_layers,
-            activation=attention_group.activation)
+            gru_type=attention_group.gru_type,
+            att_hidden_layers=attention_group.hidden_layers,
+            att_activation=attention_group.activation)

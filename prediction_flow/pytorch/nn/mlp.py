@@ -29,7 +29,7 @@ class MLP(nn.Module):
         Name of activation function. ReLU, PReLU and Sigmoid are supported.
     """
     def __init__(self, input_size, hidden_layers,
-                 dropout=None, batchnorm=True, activation='relu'):
+                 dropout=0.0, batchnorm=True, activation='relu'):
         super(MLP, self).__init__()
         modules = OrderedDict()
 
