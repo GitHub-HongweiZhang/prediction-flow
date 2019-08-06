@@ -37,8 +37,14 @@ class AttentionGroup(object):
         Activation function of attention.
         Example: prelu
 
+    att_dropout : float
+        Dropout rate of attention.
+
     gru_type : str
         Type of GRU. GRU, AIGRU, AGRU and AUGRU are supported.
+
+    gru_dropout : float
+        Dropout rate of GRU.
     """
     def __init__(self, name, pairs,
                  hidden_layers, activation='prelu', att_dropout=0.0,
