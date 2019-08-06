@@ -37,8 +37,8 @@ class AttentionGroup(object):
         else:
             self.pairs = list()
 
-    def add(self, candidate_feature_name, behavior_feature_bane):
-        self.group.append((candidate_feature_name, behavior_feature_bane))
+    def add(self, candidate_feature_name, behavior_feature_nane):
+        self.pairs.append((candidate_feature_name, behavior_feature_nane))
 
     def is_attention_feature(self, feature_name):
         for candidate, behavior in self.pairs:

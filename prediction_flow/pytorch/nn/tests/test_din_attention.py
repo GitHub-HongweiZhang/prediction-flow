@@ -16,7 +16,7 @@ def test_din_attention():
         [[0.1, 0.2, 0.3], [1, 2, 3], [0.4, 0.2, 1], [0.5, 0.5, 0.5]]
     ], dtype=torch.float)
 
-    keys_length = torch.tensor([3, 4]).view(-1, 1)
+    keys_length = torch.tensor([3, 4])
 
     for param in attention.mlp.parameters():
         init.constant_(param, 1)
