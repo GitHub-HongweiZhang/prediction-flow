@@ -37,7 +37,7 @@ class InterestEvolution(nn.Module):
         Activation function name of attention.
         relu, prelu and sigmoid are supported.
     """
-    __SUPPORTED_GRU_TYPE = ['GRU']
+    __SUPPORTED_GRU_TYPE__ = ['GRU']
 
     def __init__(
             self,
@@ -49,7 +49,7 @@ class InterestEvolution(nn.Module):
             att_batchnorm=True,
             att_activation='prelu'):
         super(InterestEvolution, self).__init__()
-        if gru_type not in InterestEvolution.__SUPPORTED_GRU_TYPE:
+        if gru_type not in InterestEvolution.__SUPPORTED_GRU_TYPE__:
             raise NotImplementedError(f"gru_type: {gru_type} is not supported")
 
         self.gru_type = gru_type
