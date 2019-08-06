@@ -40,7 +40,7 @@ class Attention(nn.Module):
             self,
             input_size,
             hidden_layers,
-            dropout=None,
+            dropout=0.0,
             batchnorm=True,
             activation='prelu'):
         super(Attention, self).__init__()

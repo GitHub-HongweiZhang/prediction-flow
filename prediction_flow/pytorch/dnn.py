@@ -38,7 +38,7 @@ class DNN(nn.Module):
         Dropout rate.
     """
     def __init__(self, features, num_classes, embedding_size, hidden_layers,
-                 activation='relu', final_activation=None, dropout=None):
+                 activation='relu', final_activation=None, dropout=0.0):
         super(DNN, self).__init__()
         self.features = features
         self.num_classes = num_classes

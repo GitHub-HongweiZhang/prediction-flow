@@ -3,7 +3,7 @@ from prediction_flow.pytorch.nn import MLP
 
 def test_simple_creation():
     mlp = MLP(input_size=10, hidden_layers=(16, 4),
-              activation=None, dropout=None)
+              activation=None, dropout=0.0)
 
     assert len(mlp._sequential) == 4
 
