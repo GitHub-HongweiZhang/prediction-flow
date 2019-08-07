@@ -2,7 +2,7 @@ from .mlp import MLP
 from .pooling import MaxPooling
 from .fm import FM
 from .attention import Attention
-from .interest_evolution import InterestEvolution
+from .interest import Interest
 
 
 __all__ = [
@@ -10,5 +10,5 @@ __all__ = [
     'MaxPooling',
     'FM',
     'Attention',
-    'InterestEvolution'
+    'Interest'
 ]

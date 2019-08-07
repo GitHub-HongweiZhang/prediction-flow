@@ -35,6 +35,9 @@ class Attention(nn.Module):
 
     activation : str
         Name of activation function. relu, prelu and sigmoid are supported.
+
+    return_scores : bool
+        Return attention scores instead of weighted sum pooling result.
     """
     def __init__(
             self,
@@ -42,8 +45,10 @@ class Attention(nn.Module):
             hidden_layers,
             dropout=0.0,
             batchnorm=True,
-            activation='prelu'):
+            activation='prelu',
+            return_scores=False):
         super(Attention, self).__init__()
+        self.return_scores = return_scores
         self.mlp = MLP(
             input_size=input_size * 4,
             hidden_layers=hidden_layers,
@@ -62,7 +67,7 @@ class Attention(nn.Module):
 
         Returns
         -------
-        outputs: 2D tensor, [B, H]
+        outputs: 2D tensor, if return_scores=False [B, H], otherwise [B, T]
         """
         batch_size, max_length, dim = keys.size()
 
@@ -88,7 +93,9 @@ class Attention(nn.Module):
         # Activation
         outputs = F.softmax(outputs, dim=1)  # [B, T]
 
-        # Weighted sum
-        outputs = torch.matmul(outputs.unsqueeze(1), keys).squeeze()  # [B, H]
+        if not self.return_scores:
+            # Weighted sum
+            outputs = torch.matmul(
+                outputs.unsqueeze(1), keys).squeeze()  # [B, H]
 
         return outputs

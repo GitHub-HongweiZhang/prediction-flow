@@ -2,7 +2,7 @@
 Deep Interest Evolution Network.
 """
 
-from .nn import InterestEvolution
+from .nn import Interest
 from .interest_net import InterestNet
 
 
@@ -39,7 +39,7 @@ class DIEN(InterestNet):
         super(DIEN, self).__init__(*args, **kwargs)
 
     def create_attention_fn(self, attention_group):
-        return InterestEvolution(
+        return Interest(
             attention_group.pairs_count * self.embedding_size,
             gru_type=attention_group.gru_type,
             gru_dropout=attention_group.gru_dropout,
