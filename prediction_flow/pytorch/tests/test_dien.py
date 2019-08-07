@@ -7,7 +7,7 @@ from prediction_flow.pytorch import AttentionGroup, DIEN
 from .utils import prepare_dataloader
 
 
-def test_normal():
+def create_test_data():
     number_features = [
         Number('userAge', StandardScaler()),
         Number('rating', StandardScaler())]
@@ -38,6 +38,27 @@ def test_normal():
         sequence_features=sequence_features)
 
     dataloader = prepare_dataloader(features)
+
+    return dataloader, features, attention_groups
+
+
+def test_gru_gru_att():
+    dataloader, features, attention_groups = create_test_data()
+
+    attention_groups[0].gru_type = 'GRU'
+
+    model = DIEN(
+        features, attention_groups=attention_groups,
+        num_classes=2, embedding_size=4, hidden_layers=(16, 8),
+        final_activation='sigmoid', dropout=0.3)
+
+    model(next(iter(dataloader)))
+
+
+def test_gru_att_gru():
+    dataloader, features, attention_groups = create_test_data()
+
+    attention_groups[0].gru_type = 'AIGRU'
 
     model = DIEN(
         features, attention_groups=attention_groups,

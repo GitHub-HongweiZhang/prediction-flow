@@ -1,11 +1,11 @@
-from prediction_flow.pytorch.nn import InterestEvolution
+from prediction_flow.pytorch.nn import Interest
 
 
 import torch
 
 
 def test_interest_evolution():
-    interests = InterestEvolution(
+    interests = Interest(
         input_size=3,
         gru_type='GRU',
         gru_dropout=0,

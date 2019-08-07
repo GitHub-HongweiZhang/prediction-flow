@@ -1,5 +1,5 @@
 """
-Iinterest evolution part used by DIEN model.
+Iinterest part used by DIEN model.
 
 Reference:
     Deep Interest Evolution Network for Click-Through Rate Prediction
@@ -16,8 +16,8 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from . import Attention
 
 
-class InterestEvolution(nn.Module):
-    """InterestEvolution layer.
+class Interest(nn.Module):
+    """Interest layer.
 
     Parameters
     ----------
@@ -43,7 +43,7 @@ class InterestEvolution(nn.Module):
         Activation function name of attention.
         relu, prelu and sigmoid are supported.
     """
-    __SUPPORTED_GRU_TYPE__ = ['GRU']
+    __SUPPORTED_GRU_TYPE__ = ['GRU', 'AIGRU']
 
     def __init__(
             self,
@@ -54,8 +54,8 @@ class InterestEvolution(nn.Module):
             att_dropout=0.0,
             att_batchnorm=True,
             att_activation='prelu'):
-        super(InterestEvolution, self).__init__()
-        if gru_type not in InterestEvolution.__SUPPORTED_GRU_TYPE__:
+        super(Interest, self).__init__()
+        if gru_type not in Interest.__SUPPORTED_GRU_TYPE__:
             raise NotImplementedError(f"gru_type: {gru_type} is not supported")
 
         self.gru_type = gru_type
@@ -79,6 +79,20 @@ class InterestEvolution(nn.Module):
                 dropout=att_dropout,
                 batchnorm=att_batchnorm,
                 activation=att_activation)
+        elif gru_type == 'AIGRU':
+            self.attention = Attention(
+                input_size=input_size,
+                hidden_layers=att_hidden_layers,
+                dropout=att_dropout,
+                batchnorm=att_batchnorm,
+                activation=att_activation,
+                return_scores=True)
+
+            self.interest_evolution = nn.GRU(
+                input_size=input_size,
+                hidden_size=input_size,
+                batch_first=True,
+                bidirectional=False)
 
     def forward(self, query, keys, keys_length):
         """
@@ -104,6 +118,7 @@ class InterestEvolution(nn.Module):
 
         if self.gru_type == 'GRU':
             packed_interests, _ = self.interest_evolution(packed_interests)
+
             interests, _ = pad_packed_sequence(
                 packed_interests,
                 batch_first=True,
@@ -111,5 +126,24 @@ class InterestEvolution(nn.Module):
                 total_length=max_length)
 
             outputs = self.attention(query, interests, keys_length)
+
+        elif self.gru_type == 'AIGRU':
+            interests, _ = pad_packed_sequence(
+                packed_interests,
+                batch_first=True,
+                padding_value=0.0,
+                total_length=max_length)
+
+            # attention
+            scores = self.attention(query, interests, keys_length)
+            interests = interests * scores.unsqueeze(-1)
+
+            packed_interests = pack_padded_sequence(
+                interests,
+                lengths=keys_length.squeeze(),
+                batch_first=True,
+                enforce_sorted=False)
+            _, outputs = self.interest_evolution(packed_interests)
+            outputs = outputs.squeeze()
 
         return outputs
