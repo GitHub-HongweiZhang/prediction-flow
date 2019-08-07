@@ -86,8 +86,8 @@ class Attention(nn.Module):
         outputs = outputs / (dim ** 0.5)
 
         # Mask
-        mask = (torch.arange(max_length).repeat(batch_size, 1) <
-                keys_length.view(-1, 1))
+        mask = (torch.arange(max_length, device=keys_length.device).repeat(
+            batch_size, 1) < keys_length.view(-1, 1))
         outputs[~mask] = -np.inf
 
         # Activation
