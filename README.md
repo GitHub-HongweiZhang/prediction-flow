@@ -55,6 +55,7 @@ The following transformers are provided now.
 | DNN + GRU + GRU + Attention | [AAAI 2019][Deep Interest Evolution Network for Click-Through Rate Prediction](https://arxiv.org/pdf/1809.03672.pdf) |
 | DNN + GRU + AIGRU | [AAAI 2019][Deep Interest Evolution Network for Click-Through Rate Prediction](https://arxiv.org/pdf/1809.03672.pdf) |
 | DNN + GRU + AGRU | [AAAI 2019][Deep Interest Evolution Network for Click-Through Rate Prediction](https://arxiv.org/pdf/1809.03672.pdf) |
+| DNN + GRU + AUGRU | [AAAI 2019][Deep Interest Evolution Network for Click-Through Rate Prediction](https://arxiv.org/pdf/1809.03672.pdf) |
 | OTHER | TODO |
 
 ## example

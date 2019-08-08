@@ -45,7 +45,7 @@ class Interest(nn.Module):
         Activation function name of attention.
         relu, prelu and sigmoid are supported.
     """
-    __SUPPORTED_GRU_TYPE__ = ['GRU', 'AIGRU', 'AGRU']
+    __SUPPORTED_GRU_TYPE__ = ['GRU', 'AIGRU', 'AGRU', 'AUGRU']
 
     def __init__(
             self,
@@ -95,7 +95,7 @@ class Interest(nn.Module):
                 hidden_size=input_size,
                 batch_first=True,
                 bidirectional=False)
-        elif gru_type == 'AGRU':
+        elif gru_type == 'AGRU' or gru_type == 'AUGRU':
             self.attention = Attention(
                 input_size=input_size,
                 hidden_layers=att_hidden_layers,
@@ -106,7 +106,8 @@ class Interest(nn.Module):
 
             self.interest_evolution = DynamicGRU(
                 input_size=input_size,
-                hidden_size=input_size)
+                hidden_size=input_size,
+                gru_type=gru_type)
 
     @staticmethod
     def _get_last_state(states, keys_length):
@@ -170,7 +171,7 @@ class Interest(nn.Module):
             _, outputs = self.interest_evolution(packed_interests)
             outputs = outputs.squeeze()
 
-        elif self.gru_type == 'AGRU':
+        elif self.gru_type == 'AGRU' or self.gru_type == 'AUGRU':
             interests, _ = pad_packed_sequence(
                 packed_interests,
                 batch_first=True,

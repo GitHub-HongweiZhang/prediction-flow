@@ -1,4 +1,5 @@
-from prediction_flow.pytorch.nn import AttentionGRUCell, DynamicGRU
+from prediction_flow.pytorch.nn import (
+    AttentionGRUCell, AttentionUpdateGateGRUCell, DynamicGRU)
 
 import torch
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
@@ -6,6 +7,27 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 def test_attention_gru_cell():
     gru_cell = AttentionGRUCell(10, 20)
+    input = torch.randn(6, 3, 10)
+    hx = torch.randn(3, 20)
+    att_scores = torch.tensor([
+        [0.1, 0.3, 0.6],
+        [0.2, 0.2, 0.6],
+        [0.1, 0.6, 0.3],
+        [1.0, 0., 0.],
+        [0.2, 0.3, 0.5],
+        [0.1, 0.3, 0.6],
+    ])
+
+    output = []
+    for i in range(6):
+        hx = gru_cell(input[i], hx, att_scores[i])
+        output.append(hx)
+
+    assert len(output) == 6
+
+
+def test_attention_update_gate_gru_cell():
+    gru_cell = AttentionUpdateGateGRUCell(10, 20)
     input = torch.randn(6, 3, 10)
     hx = torch.randn(3, 20)
     att_scores = torch.tensor([
