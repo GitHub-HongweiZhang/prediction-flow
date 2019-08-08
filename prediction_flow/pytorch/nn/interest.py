@@ -10,10 +10,12 @@ Reference:
 # License: MIT
 
 
+import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from . import Attention
+from .attention import Attention
+from .rnn import DynamicGRU
 
 
 class Interest(nn.Module):
@@ -43,7 +45,7 @@ class Interest(nn.Module):
         Activation function name of attention.
         relu, prelu and sigmoid are supported.
     """
-    __SUPPORTED_GRU_TYPE__ = ['GRU', 'AIGRU']
+    __SUPPORTED_GRU_TYPE__ = ['GRU', 'AIGRU', 'AGRU']
 
     def __init__(
             self,
@@ -93,6 +95,28 @@ class Interest(nn.Module):
                 hidden_size=input_size,
                 batch_first=True,
                 bidirectional=False)
+        elif gru_type == 'AGRU':
+            self.attention = Attention(
+                input_size=input_size,
+                hidden_layers=att_hidden_layers,
+                dropout=att_dropout,
+                batchnorm=att_batchnorm,
+                activation=att_activation,
+                return_scores=True)
+
+            self.interest_evolution = DynamicGRU(
+                input_size=input_size,
+                hidden_size=input_size)
+
+    @staticmethod
+    def _get_last_state(states, keys_length):
+        # states [B, T, H]
+        batch_size, max_seq_length, hidden_size = states.size()
+
+        mask = (torch.arange(max_seq_length, device=keys_length.device).repeat(
+            batch_size, 1) == (keys_length.view(-1, 1) - 1))
+
+        return states[mask]
 
     def forward(self, query, keys, keys_length):
         """
@@ -145,5 +169,34 @@ class Interest(nn.Module):
                 enforce_sorted=False)
             _, outputs = self.interest_evolution(packed_interests)
             outputs = outputs.squeeze()
+
+        elif self.gru_type == 'AGRU':
+            interests, _ = pad_packed_sequence(
+                packed_interests,
+                batch_first=True,
+                padding_value=0.0,
+                total_length=max_length)
+
+            # attention
+            scores = self.attention(query, interests, keys_length)
+
+            packed_interests = pack_padded_sequence(
+                interests,
+                lengths=keys_length.squeeze(),
+                batch_first=True,
+                enforce_sorted=False)
+
+            packed_scores = pack_padded_sequence(
+                scores,
+                lengths=keys_length.squeeze(),
+                batch_first=True,
+                enforce_sorted=False)
+
+            outputs, _ = pad_packed_sequence(
+                self.interest_evolution(
+                    packed_interests, packed_scores), batch_first=True)
+            # pick last state
+            outputs = Interest._get_last_state(
+                outputs, keys_length.squeeze())
 
         return outputs
