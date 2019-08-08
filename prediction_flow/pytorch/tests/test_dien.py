@@ -66,3 +66,29 @@ def test_gru_att_gru():
         final_activation='sigmoid', dropout=0.3)
 
     model(next(iter(dataloader)))
+
+
+def test_gru_agru():
+    dataloader, features, attention_groups = create_test_data()
+
+    attention_groups[0].gru_type = 'AGRU'
+
+    model = DIEN(
+        features, attention_groups=attention_groups,
+        num_classes=2, embedding_size=4, hidden_layers=(16, 8),
+        final_activation='sigmoid', dropout=0.3)
+
+    model(next(iter(dataloader)))
+
+
+def test_gru_augru():
+    dataloader, features, attention_groups = create_test_data()
+
+    attention_groups[0].gru_type = 'AUGRU'
+
+    model = DIEN(
+        features, attention_groups=attention_groups,
+        num_classes=2, embedding_size=4, hidden_layers=(16, 8),
+        final_activation='sigmoid', dropout=0.3)
+
+    model(next(iter(dataloader)))
