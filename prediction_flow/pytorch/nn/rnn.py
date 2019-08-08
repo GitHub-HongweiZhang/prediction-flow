@@ -59,9 +59,9 @@ class AttentionGRUCell(nn.Module):
         newgate = torch.tanh(i_n + resetgate * h_n)
         # hy = newgate + updategate * (hx - newgate)
 
-        expanded_att_score = att_score.view(
-            -1, 1).expand(-1, self.hidden_size)
-        hy = (1. - expanded_att_score) * hx + expanded_att_score * newgate
+        att_score = att_score.view(-1, 1)
+
+        hy = (1. - att_score) * hx + att_score * newgate
 
         return hy
 
@@ -110,10 +110,7 @@ class AttentionUpdateGateGRUCell(nn.Module):
         updategate = torch.sigmoid(i_z + h_z)
         newgate = torch.tanh(i_n + resetgate * h_n)
 
-        expanded_att_score = att_score.view(
-            -1, 1).expand(-1, self.hidden_size)
-
-        updategate = expanded_att_score * updategate
+        updategate = att_score.view(-1, 1) * updategate
 
         hy = newgate + updategate * (hx - newgate)
 
