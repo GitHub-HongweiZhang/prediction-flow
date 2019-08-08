@@ -1,4 +1,4 @@
-"""
+"""AttentionGRU.
 """
 
 # Authors: Hongwei Zhang
@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 import torch.nn.functional as F
+from torch.nn.utils.rnn import PackedSequence
 
 
 class AttentionGRUCell(nn.Module):
@@ -57,6 +58,57 @@ class AttentionGRUCell(nn.Module):
         # updategate = torch.sigmoid(i_z + h_z)
         newgate = torch.tanh(i_n + resetgate * h_n)
         # hy = newgate + updategate * (hx - newgate)
-        hy = (1. - att_score) * hx + att_score * newgate
+
+        expanded_att_score = att_score.view(
+            -1, 1).expand(-1, self.hidden_size)
+        hy = (1. - expanded_att_score) * hx + expanded_att_score * newgate
 
         return hy
+
+
+class DynamicGRU(nn.Module):
+    def __init__(self, input_size, hidden_size, bias=True):
+        super(DynamicGRU, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+
+        self.rnn = AttentionGRUCell(input_size, hidden_size, bias)
+
+    def forward(self, input, att_scores, hx=None):
+        is_packed_input = isinstance(input, PackedSequence)
+        if not is_packed_input:
+            raise NotImplementedError(
+                "DynamicGRU only supports packed input")
+
+        is_packed_att_scores = isinstance(att_scores, PackedSequence)
+        if not is_packed_att_scores:
+            raise NotImplementedError(
+                "DynamicGRU only supports packed att_scores")
+
+        input, batch_sizes, sorted_indices, unsorted_indices = input
+        att_scores, _, _, _ = att_scores
+
+        max_batch_size = batch_sizes[0]
+        max_batch_size = int(max_batch_size)
+
+        if hx is None:
+            hx = torch.zeros(
+                max_batch_size, self.hidden_size,
+                dtype=input.dtype, device=input.device)
+
+        outputs = torch.zeros(
+            input.size(0), self.hidden_size,
+            dtype=input.dtype, device=input.device)
+
+        begin = 0
+        for batch in batch_sizes:
+            new_hx = self.rnn(
+                input[begin: begin + batch],
+                hx[0:batch],
+                att_scores[begin: begin + batch])
+            outputs[begin: begin + batch] = new_hx
+            hx = new_hx
+            begin += batch
+
+        return PackedSequence(
+            outputs, batch_sizes, sorted_indices, unsorted_indices)

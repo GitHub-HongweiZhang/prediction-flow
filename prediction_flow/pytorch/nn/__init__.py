@@ -2,8 +2,8 @@ from .mlp import MLP
 from .pooling import MaxPooling
 from .fm import FM
 from .attention import Attention
+from .rnn import AttentionGRUCell, DynamicGRU
 from .interest import Interest
-from .rnn import AttentionGRUCell
 
 
 __all__ = [
@@ -11,6 +11,7 @@ __all__ = [
     'MaxPooling',
     'FM',
     'Attention',
-    'Interest',
-    'AttentionGRUCell'
+    'AttentionGRUCell',
+    'DynamicGRU',
+    'Interest'
 ]
