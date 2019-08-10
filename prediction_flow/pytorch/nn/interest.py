@@ -10,12 +10,52 @@ Reference:
 # License: MIT
 
 
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from .attention import Attention
 from .rnn import DynamicGRU
+
+
+class AuxiliaryNet(nn.Module):
+    """ NN for Auxiliary Loss.
+
+    Parameters
+    ----------
+    input_size : int
+        Size of input.
+
+    hidden_layers : iterable
+        Hidden layer sizes.
+
+    activation : str
+        Name of activation function. ReLU, PReLU and Sigmoid are supported.
+    """
+    def __init__(self, input_size, hidden_layers, activation='sigmoid'):
+        super(AuxiliaryNet, self).__init__()
+        modules = OrderedDict()
+
+        previous_size = input_size
+        for index, hidden_layer in enumerate(hidden_layers):
+            modules[f"dense{index}"] = nn.Linear(previous_size, hidden_layer)
+            if activation:
+                if activation.lower() == 'relu':
+                    modules[f"activation{index}"] = nn.ReLU()
+                elif activation.lower() == 'prelu':
+                    modules[f"activation{index}"] = nn.PReLU()
+                elif activation.lower() == 'sigmoid':
+                    modules[f"activation{index}"] = nn.Sigmoid()
+                else:
+                    raise NotImplementedError(f"{activation} is not supported")
+            previous_size = hidden_layer
+        modules["final_layer"] = nn.Linear(previous_size, 1)
+        self._sequential = nn.Sequential(modules)
+
+    def forward(self, input):
+        return torch.sigmoid(self._sequential(input))
 
 
 class Interest(nn.Module):
@@ -55,18 +95,24 @@ class Interest(nn.Module):
             att_hidden_layers=[80, 40],
             att_dropout=0.0,
             att_batchnorm=True,
-            att_activation='prelu'):
+            att_activation='prelu',
+            use_negsampling=False):
         super(Interest, self).__init__()
         if gru_type not in Interest.__SUPPORTED_GRU_TYPE__:
             raise NotImplementedError(f"gru_type: {gru_type} is not supported")
 
         self.gru_type = gru_type
+        self.use_negsampling = use_negsampling
 
         self.interest_extractor = nn.GRU(
             input_size=input_size,
             hidden_size=input_size,
             batch_first=True,
             bidirectional=False)
+
+        if self.use_negsampling:
+            self.auxiliary_net = AuxiliaryNet(
+                input_size * 2, hidden_layers=[50, 20])
 
         if gru_type == 'GRU':
             self.interest_evolution = nn.GRU(
@@ -119,13 +165,44 @@ class Interest(nn.Module):
 
         return states[mask]
 
-    def forward(self, query, keys, keys_length):
+    def auxiliary_loss(self, states, click_seq, noclick_seq, keys_length):
+        # states [B, T, H]
+        # click_seq [B, T, H]
+        # noclick_seq [B, T, H]
+        # keys_length [B]
+        batch_size, max_seq_length, embedding_size = states.size()
+
+        mask = (torch.arange(max_seq_length, device=states.device).repeat(
+            batch_size, 1) < keys_length.view(-1, 1)).float()
+
+        click_input = torch.cat([states, click_seq], dim=-1)
+        noclick_input = torch.cat([states, noclick_seq], dim=-1)
+        embedding_size = embedding_size * 2
+
+        click_p = self.auxiliary_net(
+            click_input.view(
+                batch_size * max_seq_length, embedding_size)).view(
+                    batch_size, max_seq_length)
+        noclick_p = self.auxiliary_net(
+            noclick_input.view(
+                batch_size * max_seq_length, embedding_size)).view(
+                    batch_size, max_seq_length)
+
+        click_loss = torch.log(click_p) * mask
+        noclick_loss = torch.log(1.0 - noclick_p) * mask
+
+        loss = torch.mean(click_loss + noclick_loss)
+
+        return -loss
+
+    def forward(self, query, keys, keys_length, neg_keys=None):
         """
         Parameters
         ----------
         query: 2D tensor, [B, H]
         kerys: 3D tensor, [B, T, H]
         keys_length: 1D tensor, [B]
+        neg_keys: 3D tensor, [B, T, H]
 
         Returns
         -------
@@ -141,6 +218,20 @@ class Interest(nn.Module):
 
         packed_interests, _ = self.interest_extractor(packed_keys)
 
+        interests, _ = pad_packed_sequence(
+            packed_interests,
+            batch_first=True,
+            padding_value=0.0,
+            total_length=max_length)
+
+        loss = torch.tensor(0.0)
+        if self.use_negsampling:
+            loss = self.auxiliary_loss(
+                interests[:, :-1, :],
+                keys[:, 1:, :],
+                neg_keys[:, 1:, :],
+                keys_length - 1)
+
         if self.gru_type == 'GRU':
             packed_interests, _ = self.interest_evolution(packed_interests)
 
@@ -153,12 +244,6 @@ class Interest(nn.Module):
             outputs = self.attention(query, interests, keys_length)
 
         elif self.gru_type == 'AIGRU':
-            interests, _ = pad_packed_sequence(
-                packed_interests,
-                batch_first=True,
-                padding_value=0.0,
-                total_length=max_length)
-
             # attention
             scores = self.attention(query, interests, keys_length)
             interests = interests * scores.unsqueeze(-1)
@@ -172,12 +257,6 @@ class Interest(nn.Module):
             outputs = outputs.squeeze()
 
         elif self.gru_type == 'AGRU' or self.gru_type == 'AUGRU':
-            interests, _ = pad_packed_sequence(
-                packed_interests,
-                batch_first=True,
-                padding_value=0.0,
-                total_length=max_length)
-
             # attention
             scores = self.attention(query, interests, keys_length)
 
@@ -200,4 +279,4 @@ class Interest(nn.Module):
             outputs = Interest._get_last_state(
                 outputs, keys_length.squeeze())
 
-        return outputs
+        return outputs, loss

@@ -23,13 +23,21 @@ def create_test_data():
         Sequence('clickedMovieIds',
                  SequenceEncoder(sep='|', min_cnt=1, max_len=5)),
         Sequence('clickedMovieTopGenres',
+                 SequenceEncoder(sep='|', min_cnt=1, max_len=5)),
+        Sequence('noClickedMovieIds',
+                 SequenceEncoder(sep='|', min_cnt=1, max_len=5)),
+        Sequence('noClickedMovieTopGenres',
                  SequenceEncoder(sep='|', min_cnt=1, max_len=5))]
 
     attention_groups = [
         AttentionGroup(
             name='group1',
-            pairs=[{'ad': 'movieId', 'pos_hist': 'clickedMovieIds'},
-                   {'ad': 'topGenre', 'pos_hist': 'clickedMovieTopGenres'}],
+            pairs=[{'ad': 'movieId',
+                    'pos_hist': 'clickedMovieIds',
+                    'neg_hist': 'noClickedMovieIds'},
+                   {'ad': 'topGenre',
+                    'pos_hist': 'clickedMovieTopGenres',
+                    'neg_hist': 'noClickedMovieTopGenres'}],
             hidden_layers=[8, 4])]
 
     features = Features(
@@ -88,6 +96,20 @@ def test_gru_augru():
 
     model = DIEN(
         features, attention_groups=attention_groups,
+        num_classes=2, embedding_size=4, hidden_layers=(16, 8),
+        final_activation='sigmoid', dropout=0.3)
+
+    model(next(iter(dataloader)))
+
+
+def test_gru_augru_neg():
+    dataloader, features, attention_groups = create_test_data()
+
+    attention_groups[0].gru_type = 'AUGRU'
+
+    model = DIEN(
+        features, attention_groups=attention_groups,
+        use_negsampling=True,
         num_classes=2, embedding_size=4, hidden_layers=(16, 8),
         final_activation='sigmoid', dropout=0.3)
 

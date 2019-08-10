@@ -15,7 +15,8 @@ def __to_gpu(device, batch):
 
 
 def fit(epochs, model, loss, optimizer, train_loader,
-        valid_loader=None, scheduler=None, notebook=False):
+        valid_loader=None, scheduler=None, notebook=False,
+        with_auxiliary_loss=False, auxiliary_loss_rate=0.0):
     if notebook:
         epoch_bar = tqdm_notebook(
             desc='training routine', total=epochs, position=0)
@@ -50,9 +51,13 @@ def fit(epochs, model, loss, optimizer, train_loader,
             # step 1. zero the gradients
             optimizer.zero_grad()
             # step 2. compute the output
-            pred = model(batch)
+            auxiliary_loss = torch.tensor(0.0)
+            if with_auxiliary_loss:
+                pred, auxiliary_loss = model(batch)
+            else:
+                pred = model(batch)
             # step 3. compute the loss
-            loss_t = loss(pred, label)
+            loss_t = loss(pred, label) + auxiliary_loss_rate * auxiliary_loss
             running_loss += (loss_t.item() - running_loss) / (index + 1)
             # step 4. use loss to produce gradients
             loss_t.backward()
@@ -76,7 +81,13 @@ def fit(epochs, model, loss, optimizer, train_loader,
                     # step 1 compute the output
                     pred = model(batch)
                     # step 2. compute the loss
-                    loss_t = loss(pred, label)
+                    auxiliary_loss = torch.tensor(0.0)
+                    if with_auxiliary_loss:
+                        pred, auxiliary_loss = model(batch)
+                    else:
+                        pred = model(batch)
+                    loss_t = (loss(pred, label) +
+                              auxiliary_loss_rate * auxiliary_loss)
                     running_loss += (
                         loss_t.item() - running_loss) / (index + 1)
                     # update bar
@@ -91,7 +102,7 @@ def fit(epochs, model, loss, optimizer, train_loader,
         epoch_bar.update()
 
 
-def predict(model, test_loader):
+def predict(model, test_loader, with_auxiliary_loss=False):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
@@ -101,7 +112,12 @@ def predict(model, test_loader):
             if use_cuda:
                 __to_gpu(device, batch)
             # step 1 compute the output
-            preds.append(model(batch).cpu().numpy())
+            if with_auxiliary_loss:
+                pred, _ = model(batch)
+            else:
+                pred = model(batch)
+
+            preds.append(pred.cpu().numpy())
 
     return np.vstack(preds)
 

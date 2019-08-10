@@ -58,14 +58,21 @@ class AttentionGroup(object):
         self.gru_dropout = gru_dropout
 
         self.related_feature_names = set()
+        self.neg_feature_names = set()
         for pair in pairs:
             self.related_feature_names.add(pair['ad'])
             self.related_feature_names.add(pair['pos_hist'])
             if 'neg_hist' in pair:
                 self.related_feature_names.add(pair['neg_hist'])
+                self.neg_feature_names.add(pair['neg_hist'])
 
     def is_attention_feature(self, feature_name):
         if feature_name in self.related_feature_names:
+            return True
+        return False
+
+    def is_neg_sampling(self, feature_name):
+        if feature_name in self.neg_feature_names:
             return True
         return False
 
@@ -109,6 +116,12 @@ class InterestNet(nn.Module):
                 return True
         return False
 
+    def _is_neg_sampling_feature(self, feature):
+        for group in self.attention_groups:
+            if group.is_neg_sampling(feature.name):
+                return True
+        return False
+
     def create_attention_fn(self, attention_group):
         raise NotImplementedError(
             "Please implement the func to create attention")
@@ -146,7 +159,8 @@ class InterestNet(nn.Module):
             self.add_module(
                 f"embedding:{feature.name}",
                 self._sequence_embeddings[feature.name])
-            total_embedding_sizes += embedding_size
+            if not self._is_neg_sampling_feature(feature):
+                total_embedding_sizes += embedding_size
             if not self._is_attention_feature(feature):
                 self._sequence_poolings[feature.name] = MaxPooling(1)
                 self.add_module(

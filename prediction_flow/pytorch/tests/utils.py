@@ -37,9 +37,21 @@ __SAMPLE_DF = pd.DataFrame({
     'clickedMovieTopGenres': [
         'Animation|Mystery',
         'Drama',
-        'Drama',
+        'Drama|Drama|Drama|Drama',
         '',
         'Mystery|Crime'],
+    'noClickedMovieIds': [
+        '233|291',
+        '324|421',
+        '325|3542|322|33',
+        '',
+        '45|48'],
+    'noClickedMovieTopGenres': [
+        'Drama|Crime',
+        'Animation|Mystery',
+        'Mystery|Animation|Crime|Drama',
+        '',
+        'Crime|Mystery'],
     'label': [1, 0, 0, 1, 0]})
 
 
