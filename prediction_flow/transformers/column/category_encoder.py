@@ -65,8 +65,8 @@ class CategoryEncoder(CategoryColumn):
                 list(filter(lambda x: counter[x] >= self.min_cnt, counter)))
 
             self.word2idx = dict(
-                zip(selected_terms, range(0, len(selected_terms))))
-
+                zip(selected_terms, range(1, len(selected_terms) + 1)))
+            self.word2idx['__PAD__'] = 0
             if '__UNKNOWN__' not in self.word2idx:
                 self.word2idx['__UNKNOWN__'] = len(self.word2idx)
 

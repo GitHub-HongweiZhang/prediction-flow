@@ -10,8 +10,8 @@ def test_str_inputs():
 
     transformed = category_encoder.transform(input_terms)
 
-    assert set(transformed) == {0, 1, 2, 3, 4}
-    assert category_encoder.dimension() == 6
+    assert set(transformed) == {1, 2, 3, 4, 5}
+    assert category_encoder.dimension() == 7
 
 
 def test_int_inputs():
@@ -23,8 +23,8 @@ def test_int_inputs():
 
     transformed = category_encoder.transform(input_terms)
 
-    assert set(transformed) == {0, 1, 2, 3, 4}
-    assert category_encoder.dimension() == 6
+    assert set(transformed) == {1, 2, 3, 4, 5}
+    assert category_encoder.dimension() == 7
 
 
 def test_unseen_inputs():
@@ -36,4 +36,4 @@ def test_unseen_inputs():
 
     transformed = category_encoder.transform([345, 5343])
 
-    assert set(transformed) == {3, 5}
+    assert set(transformed) == {4, 6}
