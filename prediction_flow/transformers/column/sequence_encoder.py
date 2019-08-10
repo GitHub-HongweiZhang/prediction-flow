@@ -28,6 +28,12 @@ class SequenceEncoder(SequenceColumn):
         Maximum length of sequence. If none is given,
         the maximum length of training sequence will be used.
 
+    word2idx : dict
+        Mappings from term to index.
+
+    idx2word : dict
+        Mappings from index to term.
+
     Attributes
     ----------
     sep : str, default=' '

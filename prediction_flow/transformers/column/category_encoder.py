@@ -20,6 +20,12 @@ class CategoryEncoder(CategoryColumn):
     min_cnt : int, default=5
         Minimum count of term.
 
+    word2idx : dict
+        Mappings from term to index.
+
+    idx2word : dict
+        Mappings from index to term.
+
     Attributes
     ----------
     min_cnt : int, default=5
