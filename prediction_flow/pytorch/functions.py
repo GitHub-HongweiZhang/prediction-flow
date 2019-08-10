@@ -15,7 +15,8 @@ def __to_gpu(device, batch):
 
 
 def fit(epochs, model, loss, optimizer, train_loader,
-        valid_loader=None, scheduler=None, notebook=False):
+        valid_loader=None, scheduler=None, notebook=False,
+        auxiliary_loss_rate=0.0):
     if notebook:
         epoch_bar = tqdm_notebook(
             desc='training routine', total=epochs, position=0)
@@ -50,9 +51,12 @@ def fit(epochs, model, loss, optimizer, train_loader,
             # step 1. zero the gradients
             optimizer.zero_grad()
             # step 2. compute the output
+            auxiliary_loss = torch.tensor(0.0)
             pred = model(batch)
+            if isinstance(pred, tuple):
+                pred, auxiliary_loss = pred
             # step 3. compute the loss
-            loss_t = loss(pred, label)
+            loss_t = loss(pred, label) + auxiliary_loss_rate * auxiliary_loss
             running_loss += (loss_t.item() - running_loss) / (index + 1)
             # step 4. use loss to produce gradients
             loss_t.backward()
@@ -76,7 +80,12 @@ def fit(epochs, model, loss, optimizer, train_loader,
                     # step 1 compute the output
                     pred = model(batch)
                     # step 2. compute the loss
-                    loss_t = loss(pred, label)
+                    auxiliary_loss = torch.tensor(0.0)
+                    pred = model(batch)
+                    if isinstance(pred, tuple):
+                        pred, auxiliary_loss = pred
+                    loss_t = (loss(pred, label) +
+                              auxiliary_loss_rate * auxiliary_loss)
                     running_loss += (
                         loss_t.item() - running_loss) / (index + 1)
                     # update bar
@@ -101,7 +110,10 @@ def predict(model, test_loader):
             if use_cuda:
                 __to_gpu(device, batch)
             # step 1 compute the output
-            preds.append(model(batch).cpu().numpy())
+            pred = model(batch)
+            if isinstance(pred, tuple):
+                pred, auxiliary_loss = pred
+            preds.append(pred.cpu().numpy())
 
     return np.vstack(preds)
 
