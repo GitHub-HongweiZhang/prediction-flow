@@ -46,12 +46,14 @@ class SequenceEncoder(SequenceColumn):
     idx2word : dict
         Mappings from index to term.
     """
-    def __init__(self, sep=' ', min_cnt=5, max_len=None):
+    def __init__(self, sep=' ', min_cnt=5, max_len=None,
+                 word2idx=None, idx2word=None):
         self.sep = sep
         self.min_cnt = min_cnt
         self.max_len = max_len
-        self.word2idx = dict()
-        self.idx2word = dict()
+
+        self.word2idx = word2idx if word2idx else dict()
+        self.idx2word = idx2word if idx2word else dict()
 
     def fit(self, x, y=None):
         """Fit this transformer.
@@ -69,27 +71,37 @@ class SequenceEncoder(SequenceColumn):
             This SequenceEncoder.
         """
 
-        counter = Counter()
+        if not self.word2idx:
+            counter = Counter()
 
-        max_len = 0
-        for sequence in np.array(x).ravel():
-            words = sequence.split(self.sep)
-            counter.update(words)
-            max_len = max(max_len, len(words))
+            max_len = 0
+            for sequence in np.array(x).ravel():
+                words = sequence.split(self.sep)
+                counter.update(words)
+                max_len = max(max_len, len(words))
 
-        if self.max_len is None:
+            if self.max_len is None:
+                self.max_len = max_len
+
+            # drop rare words
+            words = sorted(
+                list(filter(lambda x: counter[x] >= self.min_cnt, counter)))
+
+            self.word2idx = dict(zip(words, range(1, len(words) + 1)))
+            self.word2idx['__PAD__'] = 0
+            if '__UNKNOWN__' not in self.word2idx:
+                self.word2idx['__UNKNOWN__'] = len(self.word2idx)
+
+        if not self.idx2word:
+            self.idx2word = {
+                index: word for word, index in self.word2idx.items()}
+
+        if not self.max_len:
+            max_len = 0
+            for sequence in np.array(x).ravel():
+                words = sequence.split(self.sep)
+                max_len = max(max_len, len(words))
             self.max_len = max_len
-
-        # drop rare words
-        words = sorted(
-            list(filter(lambda x: counter[x] >= self.min_cnt, counter)))
-
-        self.word2idx = dict(zip(words, range(1, len(words) + 1)))
-        self.word2idx['__PAD__'] = 0
-        if '__UNKNOWN__' not in self.word2idx:
-            self.word2idx['__UNKNOWN__'] = len(self.word2idx)
-
-        self.idx2word = {index: word for word, index in self.word2idx.items()}
 
         return self
 

@@ -31,10 +31,11 @@ class CategoryEncoder(CategoryColumn):
     idx2word : dict
         Mappings from index to term.
     """
-    def __init__(self, min_cnt=5):
+    def __init__(self, min_cnt=5, word2idx=None, idx2word=None):
         self.min_cnt = min_cnt
-        self.word2idx = dict()
-        self.idx2word = dict()
+
+        self.word2idx = word2idx if word2idx else dict()
+        self.idx2word = idx2word if idx2word else dict()
 
     def fit(self, x, y=None):
         """Fit this transformer.
@@ -51,18 +52,21 @@ class CategoryEncoder(CategoryColumn):
         self : CategoryEncoder
             This CategoryEncoder.
         """
-        counter = Counter(np.asarray(x).ravel())
+        if not self.word2idx:
+            counter = Counter(np.asarray(x).ravel())
 
-        selected_terms = sorted(
-            list(filter(lambda x: counter[x] >= self.min_cnt, counter)))
+            selected_terms = sorted(
+                list(filter(lambda x: counter[x] >= self.min_cnt, counter)))
 
-        self.word2idx = dict(
-            zip(selected_terms, range(0, len(selected_terms))))
+            self.word2idx = dict(
+                zip(selected_terms, range(0, len(selected_terms))))
 
-        if '__UNKNOWN__' not in self.word2idx:
-            self.word2idx['__UNKNOWN__'] = len(self.word2idx)
+            if '__UNKNOWN__' not in self.word2idx:
+                self.word2idx['__UNKNOWN__'] = len(self.word2idx)
 
-        self.idx2word = {index: word for word, index in self.word2idx.items()}
+        if not self.idx2word:
+            self.idx2word = {
+                index: word for word, index in self.word2idx.items()}
 
         return self
 
