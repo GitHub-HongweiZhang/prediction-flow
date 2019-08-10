@@ -71,7 +71,7 @@ class AttentionGroup(object):
             return True
         return False
 
-    def is_neg_sampling(self, feature_name):
+    def is_neg_sampling_feature(self, feature_name):
         if feature_name in self.neg_feature_names:
             return True
         return False
@@ -118,7 +118,7 @@ class InterestNet(nn.Module):
 
     def _is_neg_sampling_feature(self, feature):
         for group in self.attention_groups:
-            if group.is_neg_sampling(feature.name):
+            if group.is_neg_sampling_feature(feature.name):
                 return True
         return False
 
