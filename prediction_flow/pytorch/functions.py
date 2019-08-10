@@ -16,7 +16,7 @@ def __to_gpu(device, batch):
 
 def fit(epochs, model, loss, optimizer, train_loader,
         valid_loader=None, scheduler=None, notebook=False,
-        with_auxiliary_loss=False, auxiliary_loss_rate=0.0):
+        auxiliary_loss_rate=0.0):
     if notebook:
         epoch_bar = tqdm_notebook(
             desc='training routine', total=epochs, position=0)
@@ -52,10 +52,9 @@ def fit(epochs, model, loss, optimizer, train_loader,
             optimizer.zero_grad()
             # step 2. compute the output
             auxiliary_loss = torch.tensor(0.0)
-            if with_auxiliary_loss:
-                pred, auxiliary_loss = model(batch)
-            else:
-                pred = model(batch)
+            pred = model(batch)
+            if isinstance(pred, tuple):
+                pred, auxiliary_loss = pred
             # step 3. compute the loss
             loss_t = loss(pred, label) + auxiliary_loss_rate * auxiliary_loss
             running_loss += (loss_t.item() - running_loss) / (index + 1)
@@ -82,10 +81,9 @@ def fit(epochs, model, loss, optimizer, train_loader,
                     pred = model(batch)
                     # step 2. compute the loss
                     auxiliary_loss = torch.tensor(0.0)
-                    if with_auxiliary_loss:
-                        pred, auxiliary_loss = model(batch)
-                    else:
-                        pred = model(batch)
+                    pred = model(batch)
+                    if isinstance(pred, tuple):
+                        pred, auxiliary_loss = pred
                     loss_t = (loss(pred, label) +
                               auxiliary_loss_rate * auxiliary_loss)
                     running_loss += (
@@ -102,7 +100,7 @@ def fit(epochs, model, loss, optimizer, train_loader,
         epoch_bar.update()
 
 
-def predict(model, test_loader, with_auxiliary_loss=False):
+def predict(model, test_loader):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
@@ -112,11 +110,9 @@ def predict(model, test_loader, with_auxiliary_loss=False):
             if use_cuda:
                 __to_gpu(device, batch)
             # step 1 compute the output
-            if with_auxiliary_loss:
-                pred, _ = model(batch)
-            else:
-                pred = model(batch)
-
+            pred = model(batch)
+            if isinstance(pred, tuple):
+                pred, auxiliary_loss = pred
             preds.append(pred.cpu().numpy())
 
     return np.vstack(preds)

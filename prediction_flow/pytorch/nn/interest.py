@@ -218,19 +218,20 @@ class Interest(nn.Module):
 
         packed_interests, _ = self.interest_extractor(packed_keys)
 
-        interests, _ = pad_packed_sequence(
-            packed_interests,
-            batch_first=True,
-            padding_value=0.0,
-            total_length=max_length)
-
         loss = torch.tensor(0.0)
-        if self.use_negsampling:
-            loss = self.auxiliary_loss(
-                interests[:, :-1, :],
-                keys[:, 1:, :],
-                neg_keys[:, 1:, :],
-                keys_length - 1)
+        if (self.gru_type != 'GRU') or self.use_negsampling:
+            interests, _ = pad_packed_sequence(
+                packed_interests,
+                batch_first=True,
+                padding_value=0.0,
+                total_length=max_length)
+
+            if self.use_negsampling:
+                loss = self.auxiliary_loss(
+                    interests[:, :-1, :],
+                    keys[:, 1:, :],
+                    neg_keys[:, 1:, :],
+                    keys_length - 1)
 
         if self.gru_type == 'GRU':
             packed_interests, _ = self.interest_evolution(packed_interests)
