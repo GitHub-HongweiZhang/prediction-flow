@@ -1,11 +1,13 @@
 """Interest Net.
 """
 
+import itertools
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
+from .feature import EmbeddingRef
 from .nn import MLP, MaxPooling
 from .utils import init_weights
 
@@ -21,7 +23,7 @@ class AttentionGroup(object):
     name : str
         Unique group name.
 
-    pairs : dict
+    pairs : list of dict
         Example :
             [{'ad': 'item_id',
               'pos_hist': 'clicked_item_ids',
@@ -109,6 +111,8 @@ class InterestNet(nn.Module):
 
     dropout : float
         Dropout rate.
+
+    embedding_ref : EmbeddingRef
     """
     def _is_attention_feature(self, feature):
         for group in self.attention_groups:
@@ -128,7 +132,7 @@ class InterestNet(nn.Module):
 
     def __init__(self, features, attention_groups, num_classes, embedding_size,
                  hidden_layers, dnn_activation='prelu', final_activation=None,
-                 dropout=0.0):
+                 dropout=0.0, embedding_ref=EmbeddingRef()):
         super(InterestNet, self).__init__()
         self.features = features
         self.attention_groups = attention_groups
@@ -138,27 +142,29 @@ class InterestNet(nn.Module):
         self.dnn_activation = dnn_activation
         self.final_activation = final_activation
         self.dropout = dropout
+        self.embedding_ref = embedding_ref
 
-        self._category_embeddings = OrderedDict()
-        self._sequence_embeddings = OrderedDict()
+        self.embeddings = OrderedDict()
         self._sequence_poolings = OrderedDict()
         self._attention_poolings = OrderedDict()
 
         total_embedding_sizes = 0
         for feature in self.features.category_features:
-            self._category_embeddings[feature.name] = nn.Embedding(
-                feature.dimension(), embedding_size)
-            self.add_module(
-                f"embedding:{feature.name}",
-                self._category_embeddings[feature.name])
+            if not self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = nn.Embedding(
+                    feature.dimension(), embedding_size)
+                self.add_module(
+                    f"embedding:{feature.name}",
+                    self.embeddings[feature.name])
             total_embedding_sizes += embedding_size
 
         for feature in self.features.sequence_features:
-            self._sequence_embeddings[feature.name] = nn.Embedding(
-                feature.dimension(), embedding_size, padding_idx=0)
-            self.add_module(
-                f"embedding:{feature.name}",
-                self._sequence_embeddings[feature.name])
+            if not self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = nn.Embedding(
+                    feature.dimension(), embedding_size, padding_idx=0)
+                self.add_module(
+                    f"embedding:{feature.name}",
+                    self.embeddings[feature.name])
             if not self._is_neg_sampling_feature(feature):
                 total_embedding_sizes += embedding_size
             if not self._is_attention_feature(feature):
@@ -166,6 +172,12 @@ class InterestNet(nn.Module):
                 self.add_module(
                     f"pooling:{feature.name}",
                     self._sequence_poolings[feature.name])
+
+        for feature in itertools.chain(self.features.category_features,
+                                       self.features.sequence_features):
+            if self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = self.embeddings[
+                    self.embedding_ref.ref_feature_name(feature.name)]
 
         # attention
         for attention_group in self.attention_groups:
@@ -202,13 +214,13 @@ class InterestNet(nn.Module):
 
         embeddings = OrderedDict()
         for feature in self.features.category_features:
-            embeddings[feature.name] = self._category_embeddings[
+            embeddings[feature.name] = self.embeddings[
                 feature.name](x[feature.name])
 
         for feature in self.features.sequence_features:
             if not self._is_attention_feature(feature):
                 embeddings[feature.name] = self._sequence_poolings[
-                    feature.name](self._sequence_embeddings[
+                    feature.name](self.embeddings[
                         feature.name](x[feature.name]))
 
         for attention_group in self.attention_groups:
@@ -217,7 +229,7 @@ class InterestNet(nn.Module):
                  for pair in attention_group.pairs],
                 dim=-1)
             keys = torch.cat(
-                [self._sequence_embeddings[pair['pos_hist']](
+                [self.embeddings[pair['pos_hist']](
                     x[pair['pos_hist']]) for pair in attention_group.pairs],
                 dim=-1)
             keys_length = torch.min(torch.cat(

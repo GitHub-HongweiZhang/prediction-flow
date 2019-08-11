@@ -1,11 +1,13 @@
 """
 DeepFM.
 """
+import itertools
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
+from .feature import EmbeddingRef
 from .nn import FM, MLP, MaxPooling
 from .utils import init_weights
 
@@ -42,10 +44,13 @@ class DeepFM(nn.Module):
     use_fm : bool
 
     use_deep : bool
+
+    embedding_ref : EmbeddingRef
     """
     def __init__(self, features, num_classes, embedding_size, hidden_layers,
                  activation='relu', final_activation=None, dropout=None,
-                 use_linear=True, use_fm=True, use_deep=True):
+                 use_linear=True, use_fm=True, use_deep=True,
+                 embedding_ref=EmbeddingRef()):
         super(DeepFM, self).__init__()
         self.features = features
         self.num_classes = num_classes
@@ -53,42 +58,49 @@ class DeepFM(nn.Module):
         self.use_linear = use_linear
         self.use_fm = use_fm
         self.use_deep = use_deep
+        self.embedding_ref = embedding_ref
 
-        self._number_embeddings = OrderedDict()
-        self._category_embeddings = OrderedDict()
-        self._sequence_embeddings = OrderedDict()
+        self.embeddings = OrderedDict()
         self._sequence_poolings = OrderedDict()
 
         total_embedding_sizes = 0
         for feature in self.features.number_features:
-            self._number_embeddings[feature.name] = nn.Linear(
+            self.embeddings[feature.name] = nn.Linear(
                 in_features=1,
                 out_features=embedding_size,
                 bias=False)
             self.add_module(
                 f"embedding:{feature.name}",
-                self._number_embeddings[feature.name])
+                self.embeddings[feature.name])
             total_embedding_sizes += embedding_size
 
         for feature in self.features.category_features:
-            self._category_embeddings[feature.name] = nn.Embedding(
-                feature.dimension(), embedding_size)
-            self.add_module(
-                f"embedding:{feature.name}",
-                self._category_embeddings[feature.name])
+            if not self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = nn.Embedding(
+                    feature.dimension(), embedding_size)
+                self.add_module(
+                    f"embedding:{feature.name}",
+                    self.embeddings[feature.name])
             total_embedding_sizes += embedding_size
 
         for feature in self.features.sequence_features:
-            self._sequence_embeddings[feature.name] = nn.Embedding(
-                feature.dimension(), embedding_size, padding_idx=0)
+            if not self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = nn.Embedding(
+                    feature.dimension(), embedding_size, padding_idx=0)
+                self.add_module(
+                    f"embedding:{feature.name}",
+                    self.embeddings[feature.name])
             self._sequence_poolings[feature.name] = MaxPooling(1)
-            self.add_module(
-                f"embedding:{feature.name}",
-                self._sequence_embeddings[feature.name])
             self.add_module(
                 f"pooling:{feature.name}",
                 self._sequence_poolings[feature.name])
             total_embedding_sizes += embedding_size
+
+        for feature in itertools.chain(self.features.category_features,
+                                       self.features.sequence_features):
+            if self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = self.embeddings[
+                    self.embedding_ref.ref_feature_name(feature.name)]
 
         final_layer_input_size = 0
         # linear
@@ -138,15 +150,15 @@ class DeepFM(nn.Module):
         embeddings = list()
         for feature in self.features.number_features:
             embeddings.append(
-                self._number_embeddings[feature.name](
+                self.embeddings[feature.name](
                     x[feature.name].view(-1, 1)))
         for feature in self.features.category_features:
             embeddings.append(
-                self._category_embeddings[feature.name](x[feature.name]))
+                self.embeddings[feature.name](x[feature.name]))
         for feature in self.features.sequence_features:
             embeddings.append(
                 self._sequence_poolings[feature.name](
-                    self._sequence_embeddings[feature.name](x[feature.name])))
+                    self.embeddings[feature.name](x[feature.name])))
 
         emb_concat = None
         if embeddings:
