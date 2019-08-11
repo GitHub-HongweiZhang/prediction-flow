@@ -152,7 +152,7 @@ class InterestNet(nn.Module):
         for feature in self.features.category_features:
             if not self.embedding_ref.share_with_others(feature.name):
                 self.embeddings[feature.name] = nn.Embedding(
-                    feature.dimension(), embedding_size)
+                    feature.dimension(), embedding_size, padding_idx=0)
                 self.add_module(
                     f"embedding:{feature.name}",
                     self.embeddings[feature.name])
