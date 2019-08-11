@@ -122,8 +122,10 @@ class DeepFM(nn.Module):
         # deep
         self.mlp = None
         if use_deep and total_embedding_sizes:
+            total_input_size = (total_embedding_sizes +
+                                len(self.features.number_features))
             self.mlp = MLP(
-                total_embedding_sizes, hidden_layers,
+                total_input_size, hidden_layers,
                 dropout=dropout, activation=activation)
             final_layer_input_size += hidden_layers[-1]
 
@@ -139,9 +141,9 @@ class DeepFM(nn.Module):
     def forward(self, x):
         final_layer_inputs = list()
 
+        number_inputs = list()
         if self.linear:
             # linear
-            number_inputs = list()
             for feature in self.features.number_features:
                 number_inputs.append(x[feature.name].view(-1, 1))
             linear_concat = torch.cat(number_inputs, dim=1)
@@ -170,7 +172,8 @@ class DeepFM(nn.Module):
 
         # deep
         if self.mlp:
-            final_layer_inputs.append(self.mlp(emb_concat))
+            deep_input = torch.cat(number_inputs + [emb_concat], dim=1)
+            final_layer_inputs.append(self.mlp(deep_input))
 
         final_layer_inputs = torch.cat(final_layer_inputs, dim=1)
 
