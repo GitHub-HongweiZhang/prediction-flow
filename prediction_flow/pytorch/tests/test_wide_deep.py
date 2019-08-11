@@ -1,7 +1,7 @@
 from prediction_flow.features import Number, Category, Sequence, Features
 from prediction_flow.transformers.column import (
     StandardScaler, CategoryEncoder, SequenceEncoder)
-from prediction_flow.pytorch import DNN
+from prediction_flow.pytorch import WideDeep
 
 
 from .utils import prepare_dataloader
@@ -30,10 +30,17 @@ def test_normal():
         category_features=category_features,
         sequence_features=sequence_features)
 
+    wide_features = ['rating', 'title', 'genres']
+    deep_features = ['userAge', 'rating', 'userId', 'movieId', 'topGenre',
+                     'clickedMovieIds', 'clickedMovieTopGenres']
+    cross_features = [('movieId', 'clickedMovieIds'),
+                      ('topGenre', 'clickedMovieTopGenres')]
+
     dataloader = prepare_dataloader(features)
 
-    model = DNN(
-        features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
+    model = WideDeep(
+        features, wide_features, deep_features, cross_features,
+        num_classes=2, embedding_size=4, hidden_layers=(8, 4),
         final_activation='sigmoid', dropout=0.3)
 
     model(next(iter(dataloader)))
@@ -60,10 +67,17 @@ def test_without_number_feature():
         category_features=category_features,
         sequence_features=sequence_features)
 
+    wide_features = ['title', 'genres']
+    deep_features = ['userId', 'movieId', 'topGenre',
+                     'clickedMovieIds', 'clickedMovieTopGenres']
+    cross_features = [('movieId', 'clickedMovieIds'),
+                      ('topGenre', 'clickedMovieTopGenres')]
+
     dataloader = prepare_dataloader(features)
 
-    model = DNN(
-        features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
+    model = WideDeep(
+        features, wide_features, deep_features, cross_features,
+        num_classes=2, embedding_size=4, hidden_layers=(8, 4),
         final_activation='sigmoid', dropout=0.3)
 
     model(next(iter(dataloader)))
@@ -87,10 +101,14 @@ def test_without_category_feature():
         category_features=category_features,
         sequence_features=sequence_features)
 
+    wide_features = ['title', 'genres']
+    deep_features = ['clickedMovieIds', 'clickedMovieTopGenres']
+
     dataloader = prepare_dataloader(features)
 
-    model = DNN(
-        features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
+    model = WideDeep(
+        features, wide_features, deep_features, [],
+        num_classes=2, embedding_size=4, hidden_layers=(8, 4),
         final_activation='sigmoid', dropout=0.3)
 
     model(next(iter(dataloader)))
@@ -110,10 +128,13 @@ def test_only_with_number_features():
         category_features=category_features,
         sequence_features=sequence_features)
 
+    wide_features = ['rating', 'userAge']
+
     dataloader = prepare_dataloader(features)
 
-    model = DNN(
-        features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
+    model = WideDeep(
+        features, wide_features, [], [],
+        num_classes=2, embedding_size=4, hidden_layers=(8, 4),
         final_activation='sigmoid', dropout=0.3)
 
     model(next(iter(dataloader)))

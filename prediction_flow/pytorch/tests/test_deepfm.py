@@ -1,6 +1,6 @@
 from prediction_flow.features import Number, Category, Sequence, Features
 from prediction_flow.transformers.column import (
-    StandardScaler, CategoryEncoder, SequenceEncoder, ColumnFlow)
+    StandardScaler, CategoryEncoder, SequenceEncoder)
 from prediction_flow.pytorch import DeepFM
 
 from .utils import prepare_dataloader
