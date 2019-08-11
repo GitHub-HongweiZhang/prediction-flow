@@ -29,3 +29,24 @@ class MaxPooling(nn.Module):
 
     def forward(self, input):
         return torch.max(input, self.dim)[0]
+
+
+class SumPooling(nn.Module):
+    """Sum Pooling.
+
+    Parameters
+    ----------
+    dim : int
+        The dimension to do pooling.
+
+    Attributes
+    ----------
+    dim : int
+        The dimension to do pooling.
+    """
+    def __init__(self, dim):
+        super(SumPooling, self).__init__()
+        self.dim = dim
+
+    def forward(self, input):
+        return torch.sum(input, self.dim)
