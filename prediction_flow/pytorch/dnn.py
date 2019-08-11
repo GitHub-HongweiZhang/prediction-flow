@@ -1,11 +1,13 @@
 """
 Deep Neural Network.
 """
+import itertools
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
+from .feature import EmbeddingRef
 from .nn import MLP, MaxPooling
 from .utils import init_weights
 
@@ -36,38 +38,49 @@ class DNN(nn.Module):
 
     dropout : float
         Dropout rate.
+
+    embedding_ref : EmbeddingRef
     """
     def __init__(self, features, num_classes, embedding_size, hidden_layers,
-                 activation='relu', final_activation=None, dropout=0.0):
+                 activation='relu', final_activation=None, dropout=0.0,
+                 embedding_ref=EmbeddingRef()):
         super(DNN, self).__init__()
         self.features = features
         self.num_classes = num_classes
         self.final_activation = final_activation
+        self.embedding_ref = embedding_ref
 
-        self._category_embeddings = OrderedDict()
-        self._sequence_embeddings = OrderedDict()
+        self.embeddings = OrderedDict()
         self._sequence_poolings = OrderedDict()
 
         total_embedding_sizes = 0
         for feature in self.features.category_features:
-            self._category_embeddings[feature.name] = nn.Embedding(
-                feature.dimension(), embedding_size)
-            self.add_module(
-                f"embedding:{feature.name}",
-                self._category_embeddings[feature.name])
+            if not self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = nn.Embedding(
+                    feature.dimension(), embedding_size, padding_idx=0)
+                self.add_module(
+                    f"embedding:{feature.name}",
+                    self.embeddings[feature.name])
             total_embedding_sizes += embedding_size
 
         for feature in self.features.sequence_features:
-            self._sequence_embeddings[feature.name] = nn.Embedding(
-                feature.dimension(), embedding_size, padding_idx=0)
+            if not self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = nn.Embedding(
+                    feature.dimension(), embedding_size, padding_idx=0)
+                self.add_module(
+                    f"embedding:{feature.name}",
+                    self.embeddings[feature.name])
             self._sequence_poolings[feature.name] = MaxPooling(1)
-            self.add_module(
-                f"embedding:{feature.name}",
-                self._sequence_embeddings[feature.name])
             self.add_module(
                 f"pooling:{feature.name}",
                 self._sequence_poolings[feature.name])
             total_embedding_sizes += embedding_size
+
+        for feature in itertools.chain(self.features.category_features,
+                                       self.features.sequence_features):
+            if self.embedding_ref.share_with_others(feature.name):
+                self.embeddings[feature.name] = self.embeddings[
+                    self.embedding_ref.ref_feature_name(feature.name)]
 
         total_input_size = (total_embedding_sizes +
                             len(self.features.number_features))
@@ -97,12 +110,12 @@ class DNN(nn.Module):
         embeddings = list()
         for feature in self.features.category_features:
             embeddings.append(
-                self._category_embeddings[feature.name](x[feature.name]))
+                self.embeddings[feature.name](x[feature.name]))
 
         for feature in self.features.sequence_features:
             embeddings.append(
                 self._sequence_poolings[feature.name](
-                    self._sequence_embeddings[feature.name](x[feature.name])))
+                    self.embeddings[feature.name](x[feature.name])))
 
         emb_concat = torch.cat(number_inputs + embeddings, dim=1)
 

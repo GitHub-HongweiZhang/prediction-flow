@@ -39,7 +39,7 @@ def test_simple_column_transformer_define():
     actual = features.transform(__TEST_DATA)
 
     expected_age = np.array([23, 43, 35, 41, 16, 32, 26, 76])
-    expected_gender = np.array([1, 1, 0, 1, 0, 0, 1, 1])
+    expected_gender = np.array([2, 2, 1, 2, 1, 1, 2, 2])
     expected_height = np.array(
         [0.1159659, 0.85814767, -0.99730676, -0.06957954, -1.73948853,
          -0.34789771, 0.48705679, 1.69310217])
@@ -74,7 +74,7 @@ def test_column_flow_define():
     actual = features.transform(__TEST_DATA)
 
     expected_age = np.array([23, 43, 35, 41, 16, 32, 26, 76])
-    expected_gender = np.array([1, 1, 0, 1, 0, 0, 1, 1])
+    expected_gender = np.array([2, 2, 1, 2, 1, 1, 2, 2])
     expected_height = np.array(
         [0.1159659, 0.85814767, -0.99730676, -0.06957954, -1.73948853,
          -0.34789771, 0.48705679, 1.69310217])

@@ -23,6 +23,6 @@ def test_transformers():
 
     transformed = column_flow.transform(input_terms)
 
-    assert set(transformed) == {0, 1, 2, 3, 4}
-    assert column_flow.transformers[-1].dimension() == 6
+    assert set(transformed) == {1, 2, 3, 4, 5}
+    assert column_flow.transformers[-1].dimension() == 7
     assert isinstance(input_terms, list) == True

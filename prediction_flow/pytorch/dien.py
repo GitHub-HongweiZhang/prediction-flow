@@ -65,13 +65,13 @@ class DIEN(InterestNet):
 
         embeddings = OrderedDict()
         for feature in self.features.category_features:
-            embeddings[feature.name] = self._category_embeddings[
+            embeddings[feature.name] = self.embeddings[
                 feature.name](x[feature.name])
 
         for feature in self.features.sequence_features:
             if not self._is_attention_feature(feature):
                 embeddings[feature.name] = self._sequence_poolings[
-                    feature.name](self._sequence_embeddings[
+                    feature.name](self.embeddings[
                         feature.name](x[feature.name]))
 
         auxiliary_loss = []
@@ -81,7 +81,7 @@ class DIEN(InterestNet):
                  for pair in attention_group.pairs],
                 dim=-1)
             pos_hist = torch.cat(
-                [self._sequence_embeddings[pair['pos_hist']](
+                [self.embeddings[pair['pos_hist']](
                     x[pair['pos_hist']]) for pair in attention_group.pairs],
                 dim=-1)
             keys_length = torch.min(torch.cat(
@@ -91,7 +91,7 @@ class DIEN(InterestNet):
             neg_hist = None
             if self.use_negsampling:
                 neg_hist = torch.cat(
-                    [self._sequence_embeddings[pair['neg_hist']](
+                    [self.embeddings[pair['neg_hist']](
                         x[pair['neg_hist']])
                      for pair in attention_group.pairs],
                     dim=-1)

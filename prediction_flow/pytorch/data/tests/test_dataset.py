@@ -73,8 +73,8 @@ def test_normal():
 
     dataset = Dataset(features, X_map, __SAMPLE_DF.label.values)
 
-    assert dataset[0]['userId'] == 0
-    assert dataset[0]['movieId'] == 0
+    assert dataset[0]['userId'] == 1
+    assert dataset[0]['movieId'] == 1
     assert dataset[0]['genres'].tolist() == [8, 9, 0, 0]
     assert dataset[0]['__genres_length'] == 2
     assert dataset[0]['label'] == 1
