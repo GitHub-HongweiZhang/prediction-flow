@@ -104,4 +104,6 @@ venv.bak/
 .mypy_cache/
 
 examples/movielens/ml-1m/*.dat
+examples/amazon/local*
+examples/amazon/*info
 tmp/
