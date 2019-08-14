@@ -69,7 +69,8 @@ sense.**
 
 ### amazon
 * Prepare the dataset. [prepare_neg.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/prepare_neg.ipynb)
-* Run the model. [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon.ipynb)
+* Run the model.
+  [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/amazon.ipynb)
 
 **accuracy**
 
