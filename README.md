@@ -70,7 +70,7 @@ The following transformers are provided now.
 * Run the model. [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon.ipynb)
 
 #### accuracy
-![benchmark](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/simple_benchmark.png)
+![benchmark](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/simple_benchmark.png)
 
 ## acknowledge and reference
 * Referring the design from [DeepCTR](https://github.com/shenweichen/DeepCTR),
