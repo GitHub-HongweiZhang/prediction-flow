@@ -61,15 +61,16 @@ The following transformers are provided now.
 | OTHER | TODO |
 
 ## example
-### movielens-1M
+### movielens-1M 
+**(this dataset is just used to test the code can run, accuracy does not make
+sense.)**
 * Prepare the dataset. [preprocess.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/movielens/ml-1m/preprocess.ipynb)
 * Run the model. [movielens-1m.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/movielens/movielens-1m.ipynb)
 
 ### amazon
 * Prepare the dataset. [prepare_neg.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/prepare_neg.ipynb)
 * Run the model. [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon.ipynb)
-
-#### accuracy
+**accuracy**
 ![benchmark](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/simple_benchmark.png)
 
 ## acknowledge and reference
