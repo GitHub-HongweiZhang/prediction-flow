@@ -41,9 +41,12 @@ def fit(epochs, model, loss, optimizer, train_loader,
         print("GPU is available, transfer model to GPU.")
         model = model.to(device)
 
+    losses = []
+
     for epoch in range(epochs):
         model.train()
         running_loss = 0
+        auxiliary_running_loss = 0
         for index, batch in enumerate(train_loader):
             if use_cuda:
                 __to_gpu(device, batch)
@@ -55,6 +58,9 @@ def fit(epochs, model, loss, optimizer, train_loader,
             pred = model(batch)
             if isinstance(pred, tuple):
                 pred, auxiliary_loss = pred
+                auxiliary_running_loss += (
+                    (auxiliary_loss.item() -
+                     auxiliary_running_loss) / (index + 1))
             # step 3. compute the loss
             loss_t = loss(pred, label) + auxiliary_loss_rate * auxiliary_loss
             running_loss += (loss_t.item() - running_loss) / (index + 1)
@@ -67,11 +73,13 @@ def fit(epochs, model, loss, optimizer, train_loader,
             train_bar.update()
         train_bar.reset()
         train_loss = running_loss
+        train_auxiliary_loss = auxiliary_running_loss
 
         valid_loss = 0
         if valid_loader:
             model.eval()
             running_loss = 0
+            auxiliary_running_loss = 0
             with torch.no_grad():
                 for index, batch in enumerate(valid_loader):
                     if use_cuda:
@@ -84,6 +92,9 @@ def fit(epochs, model, loss, optimizer, train_loader,
                     pred = model(batch)
                     if isinstance(pred, tuple):
                         pred, auxiliary_loss = pred
+                        auxiliary_running_loss += (
+                            (auxiliary_loss.item() -
+                             auxiliary_running_loss) / (index + 1))
                     loss_t = (loss(pred, label) +
                               auxiliary_loss_rate * auxiliary_loss)
                     running_loss += (
@@ -93,11 +104,19 @@ def fit(epochs, model, loss, optimizer, train_loader,
                         loss=running_loss, epoch=index)
                     valid_bar.update()
                 valid_loss = running_loss
+                valid_auxiliary_loss = auxiliary_running_loss
             valid_bar.reset()
 
         epoch_bar.set_postfix(
             train_loss=train_loss, valid_loss=valid_loss, epoch=epoch)
         epoch_bar.update()
+        losses.append(
+            {'train_loss': train_loss,
+             'valid_loss': valid_loss,
+             'train_auxiliary_loss': train_auxiliary_loss,
+             'valid_auxiliary_loss': valid_auxiliary_loss})
+
+    return losses
 
 
 def predict(model, test_loader):

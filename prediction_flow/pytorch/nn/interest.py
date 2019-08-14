@@ -112,7 +112,7 @@ class Interest(nn.Module):
 
         if self.use_negsampling:
             self.auxiliary_net = AuxiliaryNet(
-                input_size * 2, hidden_layers=[50, 20])
+                input_size * 2, hidden_layers=[100, 50])
 
         if gru_type == 'GRU':
             self.interest_evolution = nn.GRU(

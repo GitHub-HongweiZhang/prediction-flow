@@ -69,6 +69,9 @@ The following transformers are provided now.
 * Prepare the dataset. [prepare_neg.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/prepare_neg.ipynb)
 * Run the model. [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon.ipynb)
 
+#### accuracy
+![benchmark](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/simple_benchmark.png)
+
 ## acknowledge and reference
 * Referring the design from [DeepCTR](https://github.com/shenweichen/DeepCTR),
   the features are divided into dense (class Number), sparse (class Category),
