@@ -72,6 +72,7 @@ sense.**
 * Run the model. [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon.ipynb)
 
 **accuracy**
+
 ![benchmark](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/simple_benchmark.png)
 
 ## acknowledge and reference
