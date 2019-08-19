@@ -5,13 +5,9 @@
 based CTR models. Models are implemented by **PyTorch**.
 
 ## how to use
-* Clone the code.
+* Install using pip.
 ```
-git clone https://github.com/GitHub-HongweiZhang/prediction-flow.git
-```
-* Install.
-```
-pip install -e .
+pip install -e git+https://github.com/GitHub-HongweiZhang/prediction-flow.git#egg=prediction_flow
 ```
 
 ## feature
