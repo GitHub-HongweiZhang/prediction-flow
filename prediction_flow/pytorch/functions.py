@@ -57,7 +57,7 @@ def fit(epochs, model, loss, optimizer, train_loader,
             pred = model(batch)
             if isinstance(pred, tuple):
                 pred, auxiliary_loss = pred
-                if auxiliary_loss is not None:
+                if auxiliary_loss:
                     auxiliary_running_loss += (
                         (auxiliary_loss.item() -
                          auxiliary_running_loss) / (index + 1))

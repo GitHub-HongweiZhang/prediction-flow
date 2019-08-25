@@ -114,7 +114,8 @@ class Interest(nn.Module):
 
         if self.use_negsampling:
             # use dict to remove auxiliary_loss from autograd processing
-            self._no_autograd_modules = {'auxiliary_loss': nn.BCELoss()}
+            self._no_autograd_modules = {'auxiliary_loss': nn.BCELoss(
+                reduction='mean')}
             self.auxiliary_net = AuxiliaryNet(
                 input_size * 2, hidden_layers=[100, 50])
 
@@ -187,15 +188,16 @@ class Interest(nn.Module):
         click_p = self.auxiliary_net(
             click_input.view(
                 batch_size * max_seq_length, embedding_size)).view(
-                    batch_size, max_seq_length) * mask
-        click_target = mask
+                    batch_size, max_seq_length)[mask > 0].view(-1, 1)
+        click_target = torch.ones(
+            click_p.size(), dtype=torch.float, device=click_p.device)
 
         noclick_p = self.auxiliary_net(
             noclick_input.view(
                 batch_size * max_seq_length, embedding_size)).view(
-                    batch_size, max_seq_length) * mask
+                    batch_size, max_seq_length)[mask > 0].view(-1, 1)
         noclick_target = torch.zeros(
-            mask.size(), dtype=torch.float, device=mask.device)
+            noclick_p.size(), dtype=torch.float, device=noclick_p.device)
 
         loss = self._no_autograd_modules['auxiliary_loss'](
             torch.cat([click_p, noclick_p], dim=0),
