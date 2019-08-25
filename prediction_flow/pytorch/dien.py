@@ -74,7 +74,7 @@ class DIEN(InterestNet):
                     feature.name](self.embeddings[
                         feature.name](x[feature.name]))
 
-        auxiliary_loss = []
+        auxiliary_losses = []
         for attention_group in self.attention_groups:
             query = torch.cat(
                 [embeddings[pair['ad']]
@@ -98,7 +98,8 @@ class DIEN(InterestNet):
             embeddings[attention_group.name], tmp_loss = (
                 self._attention_poolings[attention_group.name](
                     query, pos_hist, keys_length, neg_hist))
-            auxiliary_loss.append(tmp_loss)
+            if tmp_loss is not None:
+                auxiliary_losses.append(tmp_loss)
 
         emb_concat = torch.cat(number_inputs + [
             emb for emb in embeddings.values()], dim=-1)
@@ -116,4 +117,12 @@ class DIEN(InterestNet):
                 f"pair (final_activation: {self.final_activation}, "
                 f"num_classes: {self.num_classes}) is not implemented")
 
-        return output, torch.mean(torch.tensor(auxiliary_loss))
+        auxiliary_avg_loss = None
+        if auxiliary_losses:
+            auxiliary_avg_loss = auxiliary_losses[0]
+            size = len(auxiliary_losses)
+            for i in range(1, size):
+                auxiliary_avg_loss += auxiliary_losses[i]
+            auxiliary_avg_loss /= size
+
+        return output, auxiliary_avg_loss
