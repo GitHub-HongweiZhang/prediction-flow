@@ -54,15 +54,18 @@ def fit(epochs, model, loss, optimizer, train_loader,
             # step 1. zero the gradients
             optimizer.zero_grad()
             # step 2. compute the output
-            auxiliary_loss = torch.tensor(0.0)
             pred = model(batch)
             if isinstance(pred, tuple):
                 pred, auxiliary_loss = pred
-                auxiliary_running_loss += (
-                    (auxiliary_loss.item() -
-                     auxiliary_running_loss) / (index + 1))
+                if auxiliary_loss:
+                    auxiliary_running_loss += (
+                        (auxiliary_loss.item() -
+                         auxiliary_running_loss) / (index + 1))
             # step 3. compute the loss
-            loss_t = loss(pred, label) + auxiliary_loss_rate * auxiliary_loss
+            loss_t = loss(pred, label)
+            if isinstance(pred, tuple):
+                if auxiliary_loss:
+                    loss_t += auxiliary_loss_rate * auxiliary_loss
             running_loss += (loss_t.item() - running_loss) / (index + 1)
             # step 4. use loss to produce gradients
             loss_t.backward()
@@ -92,11 +95,14 @@ def fit(epochs, model, loss, optimizer, train_loader,
                     pred = model(batch)
                     if isinstance(pred, tuple):
                         pred, auxiliary_loss = pred
-                        auxiliary_running_loss += (
-                            (auxiliary_loss.item() -
-                             auxiliary_running_loss) / (index + 1))
-                    loss_t = (loss(pred, label) +
-                              auxiliary_loss_rate * auxiliary_loss)
+                        if auxiliary_loss:
+                            auxiliary_running_loss += (
+                                (auxiliary_loss.item() -
+                                 auxiliary_running_loss) / (index + 1))
+                    loss_t = loss(pred, label)
+                    if isinstance(pred, tuple):
+                        if auxiliary_loss:
+                            loss_t += auxiliary_loss_rate * auxiliary_loss
                     running_loss += (
                         loss_t.item() - running_loss) / (index + 1)
                     # update bar

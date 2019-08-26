@@ -84,6 +84,8 @@ class Interest(nn.Module):
     att_activation : str
         Activation function name of attention.
         relu, prelu and sigmoid are supported.
+
+    use_negsampling : bool
     """
     __SUPPORTED_GRU_TYPE__ = ['GRU', 'AIGRU', 'AGRU', 'AUGRU']
 
@@ -111,6 +113,9 @@ class Interest(nn.Module):
             bidirectional=False)
 
         if self.use_negsampling:
+            # use dict to remove auxiliary_loss from autograd processing
+            self._no_autograd_modules = {'auxiliary_loss': nn.BCELoss(
+                reduction='mean')}
             self.auxiliary_net = AuxiliaryNet(
                 input_size * 2, hidden_layers=[100, 50])
 
@@ -165,7 +170,8 @@ class Interest(nn.Module):
 
         return states[mask]
 
-    def auxiliary_loss(self, states, click_seq, noclick_seq, keys_length):
+    def cal_auxiliary_loss(
+            self, states, click_seq, noclick_seq, keys_length):
         # states [B, T, H]
         # click_seq [B, T, H]
         # noclick_seq [B, T, H]
@@ -182,18 +188,22 @@ class Interest(nn.Module):
         click_p = self.auxiliary_net(
             click_input.view(
                 batch_size * max_seq_length, embedding_size)).view(
-                    batch_size, max_seq_length)
+                    batch_size, max_seq_length)[mask > 0].view(-1, 1)
+        click_target = torch.ones(
+            click_p.size(), dtype=torch.float, device=click_p.device)
+
         noclick_p = self.auxiliary_net(
             noclick_input.view(
                 batch_size * max_seq_length, embedding_size)).view(
-                    batch_size, max_seq_length)
+                    batch_size, max_seq_length)[mask > 0].view(-1, 1)
+        noclick_target = torch.zeros(
+            noclick_p.size(), dtype=torch.float, device=noclick_p.device)
 
-        click_loss = torch.log(click_p) * mask
-        noclick_loss = torch.log(1.0 - noclick_p) * mask
+        loss = self._no_autograd_modules['auxiliary_loss'](
+            torch.cat([click_p, noclick_p], dim=0),
+            torch.cat([click_target, noclick_target], dim=0))
 
-        loss = torch.mean(click_loss + noclick_loss)
-
-        return -loss
+        return loss
 
     def forward(self, query, keys, keys_length, neg_keys=None):
         """
@@ -218,7 +228,7 @@ class Interest(nn.Module):
 
         packed_interests, _ = self.interest_extractor(packed_keys)
 
-        loss = torch.tensor(0.0)
+        aloss = None
         if (self.gru_type != 'GRU') or self.use_negsampling:
             interests, _ = pad_packed_sequence(
                 packed_interests,
@@ -227,7 +237,7 @@ class Interest(nn.Module):
                 total_length=max_length)
 
             if self.use_negsampling:
-                loss = self.auxiliary_loss(
+                aloss = self.cal_auxiliary_loss(
                     interests[:, :-1, :],
                     keys[:, 1:, :],
                     neg_keys[:, 1:, :],
@@ -280,4 +290,4 @@ class Interest(nn.Module):
             outputs = Interest._get_last_state(
                 outputs, keys_length.squeeze())
 
-        return outputs, loss
+        return outputs, aloss
