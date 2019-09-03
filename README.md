@@ -60,17 +60,17 @@ The following transformers are provided now.
 ### movielens-1M 
 **This dataset is just used to test the code can run, accuracy does not make
 sense.**
-* Prepare the dataset. [preprocess.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/movielens/ml-1m/preprocess.ipynb)
-* Run the model. [movielens-1m.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/movielens/movielens-1m.ipynb)
+* Prepare the dataset. [preprocess.ipynb](examples/movielens/ml-1m/preprocess.ipynb)
+* Run the model. [movielens-1m.ipynb](examples/movielens/movielens-1m.ipynb)
 
 ### amazon
-* Prepare the dataset. [prepare_neg.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/prepare_neg.ipynb)
+* Prepare the dataset. [prepare_neg.ipynb](examples/amazon/prepare_neg.ipynb)
 * Run the model.
-  [amazon.ipynb](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/amazon.ipynb)
+  [amazon.ipynb](examples/amazon/amazon.ipynb)
 
 **accuracy**
 
-![benchmark](https://github.com/GitHub-HongweiZhang/prediction-flow/blob/master/examples/amazon/simple_benchmark.png)
+![benchmark](examples/amazon/simple_benchmark.png)
 
 ## acknowledge and reference
 * Referring the design from [DeepCTR](https://github.com/shenweichen/DeepCTR),
