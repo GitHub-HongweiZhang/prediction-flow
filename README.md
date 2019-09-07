@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/GitHub-HongweiZhang/prediction-flow.svg?branch=master)](https://travis-ci.org/GitHub-HongweiZhang/prediction-flow)
-[![Coverage Status](https://coveralls.io/repos/github/GitHub-HongweiZhang/prediction-flow/badge.svg?branch=master)](https://coveralls.io/github/GitHub-HongweiZhang/prediction-flow?branch=master)
 
 # prediction-flow
 **prediction-flow** is a Python package providing modern **Deep-Learning**
