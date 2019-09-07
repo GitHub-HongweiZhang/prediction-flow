@@ -6,8 +6,9 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
+from .base import EmbeddingMixin
 from .nn import MLP, MaxPooling
-from .utils import init_weights, build_embeddings
+from .utils import init_weights
 
 
 class AttentionGroup(object):
@@ -81,7 +82,7 @@ class AttentionGroup(object):
         return len(self.pairs)
 
 
-class InterestNet(nn.Module):
+class InterestNet(nn.Module, EmbeddingMixin):
     """Interest Network.
 
     Parameters
@@ -139,8 +140,8 @@ class InterestNet(nn.Module):
         self.final_activation = final_activation
         self.dropout = dropout
 
-        self.embeddings, self.embedding_sizes = build_embeddings(
-            self, features, embedding_size)
+        self.embeddings, self.embedding_sizes = self.build_embeddings(
+            embedding_size)
 
         self._sequence_poolings = OrderedDict()
         self._attention_poolings = OrderedDict()

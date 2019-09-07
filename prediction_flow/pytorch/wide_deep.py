@@ -6,11 +6,12 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
+from .base import EmbeddingMixin
 from .nn import MLP, SumPooling
-from .utils import init_weights, build_embeddings
+from .utils import init_weights
 
 
-class WideDeep(nn.Module):
+class WideDeep(nn.Module, EmbeddingMixin):
     """Wide&Deep Model.
 
     Parameters
@@ -57,8 +58,8 @@ class WideDeep(nn.Module):
         self.num_classes = num_classes
         self.final_activation = final_activation
 
-        self.embeddings, self.embedding_sizes = build_embeddings(
-            self, features, embedding_size)
+        self.embeddings, self.embedding_sizes = self.build_embeddings(
+            embedding_size)
 
         self._sequence_poolings = OrderedDict()
 

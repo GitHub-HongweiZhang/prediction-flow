@@ -6,11 +6,12 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 
+from .base import EmbeddingMixin
 from .nn import FM, MLP, MaxPooling
-from .utils import init_weights, build_embeddings
+from .utils import init_weights
 
 
-class DeepFM(nn.Module):
+class DeepFM(nn.Module, EmbeddingMixin):
     """DeepFM.
 
     Parameters
@@ -54,8 +55,8 @@ class DeepFM(nn.Module):
         self.use_fm = use_fm
         self.use_deep = use_deep
 
-        self.embeddings, self.embedding_sizes = build_embeddings(
-            self, features, embedding_size, fixed_embedding_size=True)
+        self.embeddings, self.embedding_sizes = self.build_embeddings(
+            embedding_size, fixed_embedding_size=True)
 
         self._sequence_poolings = OrderedDict()
 
