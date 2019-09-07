@@ -5,7 +5,7 @@ import pandas as pd
 import torch.utils.data as data
 
 
-__SAMPLE_DF = pd.DataFrame({
+_SAMPLE_DF = pd.DataFrame({
     'userId': [11, 11, 11, 11, 11],
     'userAge': [23, 21, 19, 17, 41],
     'movieId': ['4226', '5971', '6291', '7153', '30707'],
@@ -56,13 +56,13 @@ __SAMPLE_DF = pd.DataFrame({
 
 
 def prepare_dataloader(features):
-    features.fit(__SAMPLE_DF)
+    features.fit(_SAMPLE_DF)
 
-    X_map = features.transform(__SAMPLE_DF)
+    X_map = features.transform(_SAMPLE_DF)
 
-    dataset = Dataset(features, X_map, __SAMPLE_DF.label.values)
+    dataset = Dataset(features, X_map, _SAMPLE_DF.label.values)
 
     dataloader = data.DataLoader(
-        dataset, batch_size=__SAMPLE_DF.shape[0], shuffle=False)
+        dataset, batch_size=_SAMPLE_DF.shape[0], shuffle=False)
 
-    return dataloader
+    return dataloader, _SAMPLE_DF

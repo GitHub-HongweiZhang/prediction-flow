@@ -1,18 +1,17 @@
 """
 Wide&Deep Model.
 """
-import itertools
 from collections import OrderedDict
 
 import torch
 import torch.nn as nn
 
-from .feature import EmbeddingRef
+from .base import EmbeddingMixin
 from .nn import MLP, SumPooling
 from .utils import init_weights
 
 
-class WideDeep(nn.Module):
+class WideDeep(nn.Module, EmbeddingMixin):
     """Wide&Deep Model.
 
     Parameters
@@ -47,13 +46,10 @@ class WideDeep(nn.Module):
 
     dropout : float
         Dropout rate.
-
-    embedding_ref : EmbeddingRef
     """
     def __init__(self, features, wide_features, deep_features, cross_features,
                  num_classes, embedding_size, hidden_layers,
-                 activation='relu', final_activation=None, dropout=0.0,
-                 embedding_ref=EmbeddingRef()):
+                 activation='relu', final_activation=None, dropout=0.0):
         super(WideDeep, self).__init__()
         self.features = features
         self.wide_features = wide_features
@@ -61,9 +57,10 @@ class WideDeep(nn.Module):
         self.cross_features = cross_features
         self.num_classes = num_classes
         self.final_activation = final_activation
-        self.embedding_ref = embedding_ref
 
-        self.embeddings = OrderedDict()
+        self.embeddings, self.embedding_sizes = self.build_embeddings(
+            embedding_size)
+
         self._sequence_poolings = OrderedDict()
 
         wide_input_size = 0
@@ -76,38 +73,20 @@ class WideDeep(nn.Module):
                 deep_input_size += 1
 
         for feature in self.features.category_features:
-            if not self.embedding_ref.share_with_others(feature.name):
-                self.embeddings[feature.name] = nn.Embedding(
-                    feature.dimension(), embedding_size, padding_idx=0)
-                self.add_module(
-                    f"embedding:{feature.name}",
-                    self.embeddings[feature.name])
             if feature.name in self.wide_features:
-                wide_input_size += embedding_size
+                wide_input_size += self.embedding_sizes[feature.name]
             if feature.name in self.deep_features:
-                deep_input_size += embedding_size
+                deep_input_size += self.embedding_sizes[feature.name]
 
         for feature in self.features.sequence_features:
-            if not self.embedding_ref.share_with_others(feature.name):
-                self.embeddings[feature.name] = nn.Embedding(
-                    feature.dimension(), embedding_size, padding_idx=0)
-                self.add_module(
-                    f"embedding:{feature.name}",
-                    self.embeddings[feature.name])
             self._sequence_poolings[feature.name] = SumPooling(1)
             self.add_module(
                 f"pooling:{feature.name}",
                 self._sequence_poolings[feature.name])
             if feature.name in self.wide_features:
-                wide_input_size += embedding_size
+                wide_input_size += self.embedding_sizes[feature.name]
             if feature.name in self.deep_features:
-                deep_input_size += embedding_size
-
-        for feature in itertools.chain(self.features.category_features,
-                                       self.features.sequence_features):
-            if self.embedding_ref.share_with_others(feature.name):
-                self.embeddings[feature.name] = self.embeddings[
-                    self.embedding_ref.ref_feature_name(feature.name)]
+                deep_input_size += self.embedding_sizes[feature.name]
 
         # plus cross embedding size
         wide_input_size += len(self.cross_features) * embedding_size
@@ -153,11 +132,13 @@ class WideDeep(nn.Module):
             if feature.name in self.wide_features:
                 wide_inputs.append(
                     self._sequence_poolings[feature.name](
-                        self.embeddings[feature.name](x[feature.name])))
+                        self.embeddings[feature.name](
+                            x[feature.name])))
             if feature.name in self.deep_features:
                 deep_inputs.append(
                     self._sequence_poolings[feature.name](
-                        self.embeddings[feature.name](x[feature.name])))
+                        self.embeddings[feature.name](
+                            x[feature.name])))
 
         # prepare cross features
         for x_f, y_f in self.cross_features:

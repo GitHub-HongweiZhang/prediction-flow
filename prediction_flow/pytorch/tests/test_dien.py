@@ -1,7 +1,7 @@
 from prediction_flow.features import Number, Category, Sequence, Features
 from prediction_flow.transformers.column import (
     StandardScaler, CategoryEncoder, SequenceEncoder)
-from prediction_flow.pytorch import AttentionGroup, DIEN, EmbeddingRef
+from prediction_flow.pytorch import AttentionGroup, DIEN
 
 
 from .utils import prepare_dataloader
@@ -45,7 +45,7 @@ def create_test_data():
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     return dataloader, features, attention_groups
 
@@ -147,19 +147,26 @@ def create_test_data_with_sharing_emb():
         index: word for word, index in movie_word2idx.items()}
 
     category_features = [
-        Category('movieId', CategoryEncoder(
-            word2idx=movie_word2idx, idx2word=movie_idx2word)),
+        Category('movieId',
+                 CategoryEncoder(
+                     word2idx=movie_word2idx,
+                     idx2word=movie_idx2word),
+                 embedding_name='movieId'),
         Category('topGenre', CategoryEncoder(min_cnt=1))]
 
     sequence_features = [
         Sequence('title', SequenceEncoder(sep='|', min_cnt=1)),
         Sequence('genres', SequenceEncoder(sep='|', min_cnt=1)),
-        Sequence('clickedMovieIds', SequenceEncoder(
-            sep='|', max_len=5,
-            word2idx=movie_word2idx, idx2word=movie_idx2word)),
-        Sequence('noClickedMovieIds', SequenceEncoder(
-            sep='|', max_len=5,
-            word2idx=movie_word2idx, idx2word=movie_idx2word))]
+        Sequence('clickedMovieIds',
+                 SequenceEncoder(
+                     sep='|', max_len=5,
+                     word2idx=movie_word2idx, idx2word=movie_idx2word),
+                 embedding_name='movieId'),
+        Sequence('noClickedMovieIds',
+                 SequenceEncoder(
+                     sep='|', max_len=5,
+                     word2idx=movie_word2idx, idx2word=movie_idx2word),
+                 embedding_name='movieId')]
 
     attention_groups = [
         AttentionGroup(
@@ -169,21 +176,18 @@ def create_test_data_with_sharing_emb():
                     'neg_hist': 'noClickedMovieIds'}],
             hidden_layers=[8, 4])]
 
-    embedding_ref = EmbeddingRef(
-        {'clickedMovieIds': 'movieId', 'noClickedMovieIds': 'movieId'})
-
     features = Features(
         number_features=number_features,
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
-    return dataloader, features, attention_groups, embedding_ref
+    return dataloader, features, attention_groups
 
 
 def test_gru_augru_neg_with_sharing_emb():
-    dataloader, features, attention_groups, embedding_ref = (
+    dataloader, features, attention_groups = (
         create_test_data_with_sharing_emb())
 
     attention_groups[0].gru_type = 'AUGRU'
@@ -192,6 +196,6 @@ def test_gru_augru_neg_with_sharing_emb():
         features, attention_groups=attention_groups,
         use_negsampling=True,
         num_classes=2, embedding_size=4, hidden_layers=(16, 8),
-        final_activation='sigmoid', dropout=0.3, embedding_ref=embedding_ref)
+        final_activation='sigmoid', dropout=0.3)
 
     model(next(iter(dataloader)))

@@ -37,7 +37,7 @@ def test_normal():
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     model = DIN(
         features, attention_groups=attention_groups,
