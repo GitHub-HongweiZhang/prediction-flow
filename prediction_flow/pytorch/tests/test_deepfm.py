@@ -29,7 +29,7 @@ def test_normal():
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     deep_fm = DeepFM(
         features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
@@ -59,7 +59,7 @@ def test_without_number_feature():
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     deep_fm = DeepFM(
         features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
@@ -86,7 +86,7 @@ def test_without_category_feature():
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     deep_fm = DeepFM(
         features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),
@@ -109,7 +109,7 @@ def test_only_with_number_features():
         category_features=category_features,
         sequence_features=sequence_features)
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     deep_fm = DeepFM(
         features, num_classes=2, embedding_size=4, hidden_layers=(8, 4),

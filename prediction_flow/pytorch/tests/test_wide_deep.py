@@ -36,7 +36,7 @@ def test_normal():
     cross_features = [('movieId', 'clickedMovieIds'),
                       ('topGenre', 'clickedMovieTopGenres')]
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     model = WideDeep(
         features, wide_features, deep_features, cross_features,
@@ -73,7 +73,7 @@ def test_without_number_feature():
     cross_features = [('movieId', 'clickedMovieIds'),
                       ('topGenre', 'clickedMovieTopGenres')]
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     model = WideDeep(
         features, wide_features, deep_features, cross_features,
@@ -104,7 +104,7 @@ def test_without_category_feature():
     wide_features = ['title', 'genres']
     deep_features = ['clickedMovieIds', 'clickedMovieTopGenres']
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     model = WideDeep(
         features, wide_features, deep_features, [],
@@ -130,7 +130,7 @@ def test_only_with_number_features():
 
     wide_features = ['rating', 'userAge']
 
-    dataloader = prepare_dataloader(features)
+    dataloader, _ = prepare_dataloader(features)
 
     model = WideDeep(
         features, wide_features, [], [],
