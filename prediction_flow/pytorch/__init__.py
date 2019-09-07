@@ -1,4 +1,3 @@
-from .feature import EmbeddingRef
 from .deepfm import DeepFM
 from .dnn import DNN
 from .interest_net import AttentionGroup
@@ -8,7 +7,6 @@ from .wide_deep import WideDeep
 
 
 __all__ = [
-    'EmbeddingRef',
     'DeepFM',
     'DNN',
     'AttentionGroup',
