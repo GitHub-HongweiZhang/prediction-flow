@@ -15,7 +15,7 @@ def __to_gpu(device, batch):
 
 
 def fit(epochs, model, loss, optimizer, train_loader,
-        valid_loader=None, scheduler=None, notebook=False,
+        valid_loader=None, notebook=False,
         auxiliary_loss_rate=0.0):
     if notebook:
         epoch_bar = tqdm_notebook(
