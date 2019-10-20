@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import prediction_flow
 
 
@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 DISTNAME = 'prediction-flow'
 DESCRIPTION = 'Deep-Learning based CTR models implemented by PyTorch'
 MAINTAINER = 'Hongwei Zhang'
-MAINTAINER_EMAIL = 'hongwei.zhang.se@gmail.com'
+MAINTAINER_EMAIL = 'hw_zhang@outlook.com'
 URL = 'https://github.com/GitHub-HongweiZhang/prediction-flow'
 LICENSE = 'MIT'
 VERSION = prediction_flow.__version__
@@ -23,6 +23,7 @@ VERSION = prediction_flow.__version__
 def setup_package():
     setup(
         name=DISTNAME,
+        packages=find_packages(),
         maintainer=MAINTAINER,
         maintainer_email=MAINTAINER_EMAIL,
         description=DESCRIPTION,
