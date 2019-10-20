@@ -30,6 +30,7 @@ def setup_package():
         url=URL,
         version=VERSION,
         long_description=LONG_DESCRIPTION,
+        long_description_content_type="text/markdown",
         python_requires='>=3.6',
         install_requires=INSTALL_REQUIRES,
         classifiers=(
