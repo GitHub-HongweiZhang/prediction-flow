@@ -14,6 +14,7 @@ from collections import OrderedDict
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from .attention import Attention
@@ -113,9 +114,6 @@ class Interest(nn.Module):
             bidirectional=False)
 
         if self.use_negsampling:
-            # use dict to remove auxiliary_loss from autograd processing
-            self._no_autograd_modules = {'auxiliary_loss': nn.BCELoss(
-                reduction='mean')}
             self.auxiliary_net = AuxiliaryNet(
                 input_size * 2, hidden_layers=[100, 50])
 
@@ -199,7 +197,7 @@ class Interest(nn.Module):
         noclick_target = torch.zeros(
             noclick_p.size(), dtype=torch.float, device=noclick_p.device)
 
-        loss = self._no_autograd_modules['auxiliary_loss'](
+        loss = F.binary_cross_entropy(
             torch.cat([click_p, noclick_p], dim=0),
             torch.cat([click_target, noclick_target], dim=0))
 
