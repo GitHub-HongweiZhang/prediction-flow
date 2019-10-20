@@ -129,6 +129,9 @@ def predict(model, test_loader):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
+    model.zero_grad()
+    model.eval()
+
     preds = list()
     with torch.no_grad():
         for _, batch in enumerate(test_loader):
