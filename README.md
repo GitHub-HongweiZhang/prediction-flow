@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/GitHub-HongweiZhang/prediction-flow.svg?branch=master)](https://travis-ci.org/GitHub-HongweiZhang/prediction-flow)
 
+[![PyPI version](https://badge.fury.io/py/prediction-flow.svg)](https://badge.fury.io/py/prediction-flow)
+
 # prediction-flow
 **prediction-flow** is a Python package providing modern **Deep-Learning**
 based CTR models. Models are implemented by **PyTorch**.
@@ -7,7 +9,7 @@ based CTR models. Models are implemented by **PyTorch**.
 ## how to use
 * Install using pip.
 ```
-pip install -e git+https://github.com/GitHub-HongweiZhang/prediction-flow.git#egg=prediction_flow
+pip install prediction-flow
 ```
 
 ## feature
