@@ -32,6 +32,7 @@ def setup_package():
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
         python_requires='>=3.6',
+        include_package_data=True,
         install_requires=INSTALL_REQUIRES,
         classifiers=(
             'Development Status :: 3 - Alpha',
