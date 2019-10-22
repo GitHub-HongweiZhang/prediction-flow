@@ -45,7 +45,7 @@ class Dataset(data.Dataset):
     @staticmethod
     def __pad_sequence(sequence_feature, sequence):
         # zero is special index for padding
-        padded_seq = np.zeros(sequence_feature.max_length(), np.int)
+        padded_seq = np.zeros(sequence_feature.max_length(), np.int64)
         padded_seq[0: sequence.shape[0]] = sequence
 
         return padded_seq
@@ -61,7 +61,7 @@ class Dataset(data.Dataset):
         for feat in self.features.sequence_features:
             seq = self.X_map[feat.name][idx]
             record[feat.name] = Dataset.__pad_sequence(feat, seq)
-            record[f"__{feat.name}_length"] = seq.shape[0]
+            record[f"__{feat.name}_length"] = np.int64(seq.shape[0])
 
         if self.y is not None:
             record['label'] = self.y[idx]

@@ -135,7 +135,7 @@ class SequenceEncoder(SequenceColumn):
                     words.append(self.word2idx['__UNKNOWN__'])
 
             transformed_x.append(
-                np.asarray(words[0:self.max_len], dtype=np.int))
+                np.asarray(words[0:self.max_len], dtype=np.int64))
 
         return np.asarray(transformed_x, dtype=np.object)
 
