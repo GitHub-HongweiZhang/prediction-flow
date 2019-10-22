@@ -69,7 +69,7 @@ sense.**
 * Prepare the dataset. [prepare_neg.ipynb](examples/amazon/prepare_neg.ipynb)
 * Run the model.
   [amazon.ipynb](examples/amazon/amazon.ipynb)
-* An example using [pytorch-lightning](https://github.com/williamFalcon/pytorch-lightning)
+* An example using [pytorch-lightning](https://github.com/williamFalcon/pytorch-lightning).
   [amazon-lighting.ipynb](examples/amazon/amazon-lighting.ipynb)
 
 **accuracy**
