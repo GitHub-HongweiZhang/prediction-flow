@@ -96,7 +96,7 @@ class CategoryEncoder(CategoryColumn):
             except KeyError:
                 transformed_x.append(self.word2idx['__UNKNOWN__'])
 
-        return np.asarray(transformed_x, dtype=np.int)
+        return np.asarray(transformed_x, dtype=np.int64)
 
     def dimension(self):
         return len(self.word2idx)
