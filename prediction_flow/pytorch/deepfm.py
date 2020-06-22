@@ -134,22 +134,23 @@ class DeepFM(nn.Module, EmbeddingMixin):
         for feature in self.features.number_features:
             embeddings.append(
                 self.embeddings[feature.name](
-                    x[feature.name].view(-1, 1)))
+                    x[feature.name].view(-1, 1)).unsqueeze(1))
         for feature in self.features.category_features:
             embeddings.append(
-                self.embeddings[feature.name](x[feature.name]))
+                self.embeddings[feature.name](x[feature.name]).unsqueeze(1))
         for feature in self.features.sequence_features:
             embeddings.append(
                 self._sequence_poolings[feature.name](
-                    self.embeddings[feature.name](x[feature.name])))
+                    self.embeddings[feature.name](x[feature.name])).unsqueeze(1))
 
         emb_concat = None
         if embeddings:
             emb_concat = torch.cat(embeddings, dim=1)
-
-        # fm
-        if self.fm:
-            final_layer_inputs.append(self.fm(emb_concat))
+            b, f, e = emb_concat.size()
+            # fm
+            if self.fm:
+                final_layer_inputs.append(self.fm(emb_concat))
+            emb_concat = emb_concat.view(b, f * e)
 
         # deep
         if self.mlp:
