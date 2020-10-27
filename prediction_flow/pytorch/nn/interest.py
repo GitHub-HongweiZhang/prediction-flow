@@ -208,7 +208,7 @@ class Interest(nn.Module):
         Parameters
         ----------
         query: 2D tensor, [B, H]
-        kerys: 3D tensor, [B, T, H]
+        keys: 3D tensor, [B, T, H]
         keys_length: 1D tensor, [B]
         neg_keys: 3D tensor, [B, T, H]
 
